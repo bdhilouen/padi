@@ -10,7 +10,6 @@ import { LifeEventModule } from './modules/life-event/life-event.module';
 import { DocumentVaultModule } from './modules/document-vault/document-vault.module';
 import { ConsentModule } from './modules/consent/consent.module';
 
-
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
@@ -38,4 +37,4 @@ import { ConsentModule } from './modules/consent/consent.module';
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule { }
+export class AppModule {}
