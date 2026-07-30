@@ -5,7 +5,7 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { UserRoleEnum } from '../../../common/enums/index.js';
 
 export interface JwtPayload {
-  sub: string;   // user_id (UUID)
+  sub: string; // user_id (UUID)
   email: string;
   role: UserRoleEnum;
 }

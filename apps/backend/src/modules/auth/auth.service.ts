@@ -65,7 +65,9 @@ export class AuthService {
     });
 
     if (existing) {
-      throw new ConflictException('A user with this NIK or email already exists');
+      throw new ConflictException(
+        'A user with this NIK or email already exists',
+      );
     }
 
     const passwordHash = await this.cryptoService.hashPassword(dto.password);
@@ -112,8 +114,12 @@ export class AuthService {
       await queryRunner.rollbackTransaction();
 
       // Surface duplicate key violations as 409 Conflict
-      if ((error as NodeJS.ErrnoException & { code?: string }).code === '23505') {
-        throw new ConflictException('A user with this NIK or email already exists');
+      if (
+        (error as NodeJS.ErrnoException & { code?: string }).code === '23505'
+      ) {
+        throw new ConflictException(
+          'A user with this NIK or email already exists',
+        );
       }
 
       throw new InternalServerErrorException('Registration failed');
@@ -172,8 +178,8 @@ export class AuthService {
     const stored = await this.refreshTokenRepo.findOne({
       where: {
         tokenHash,
-        revokedAt: IsNull(),               // revoked_at IS NULL
-        expiresAt: MoreThan(new Date()),   // expires_at > now()
+        revokedAt: IsNull(), // revoked_at IS NULL
+        expiresAt: MoreThan(new Date()), // expires_at > now()
       },
       relations: { user: true },
     });

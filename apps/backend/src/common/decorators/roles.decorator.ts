@@ -13,5 +13,6 @@ export const ROLES_KEY = 'roles';
  * \@Get('admin/report')
  * getAdminReport() { ... }
  */
-export const Roles = (...roles: UserRoleEnum[]): MethodDecorator & ClassDecorator =>
-  SetMetadata(ROLES_KEY, roles);
+export const Roles = (
+  ...roles: UserRoleEnum[]
+): MethodDecorator & ClassDecorator => SetMetadata(ROLES_KEY, roles);

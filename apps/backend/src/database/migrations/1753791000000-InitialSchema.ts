@@ -464,13 +464,25 @@ export class InitialSchema1753791000000 implements MigrationInterface {
     // Drop in reverse dependency order
 
     // Triggers and functions first
-    await queryRunner.query(`DROP TRIGGER IF EXISTS "trg_audit_logs_no_delete"  ON "audit_logs"`);
-    await queryRunner.query(`DROP TRIGGER IF EXISTS "trg_audit_logs_no_update"  ON "audit_logs"`);
-    await queryRunner.query(`DROP FUNCTION IF EXISTS block_audit_log_mutation()`);
+    await queryRunner.query(
+      `DROP TRIGGER IF EXISTS "trg_audit_logs_no_delete"  ON "audit_logs"`,
+    );
+    await queryRunner.query(
+      `DROP TRIGGER IF EXISTS "trg_audit_logs_no_update"  ON "audit_logs"`,
+    );
+    await queryRunner.query(
+      `DROP FUNCTION IF EXISTS block_audit_log_mutation()`,
+    );
 
-    await queryRunner.query(`DROP TRIGGER IF EXISTS "trg_deadlines_updated_at"     ON "deadlines"`);
-    await queryRunner.query(`DROP TRIGGER IF EXISTS "trg_service_status_updated_at" ON "service_status"`);
-    await queryRunner.query(`DROP TRIGGER IF EXISTS "trg_users_updated_at"          ON "users"`);
+    await queryRunner.query(
+      `DROP TRIGGER IF EXISTS "trg_deadlines_updated_at"     ON "deadlines"`,
+    );
+    await queryRunner.query(
+      `DROP TRIGGER IF EXISTS "trg_service_status_updated_at" ON "service_status"`,
+    );
+    await queryRunner.query(
+      `DROP TRIGGER IF EXISTS "trg_users_updated_at"          ON "users"`,
+    );
     await queryRunner.query(`DROP FUNCTION IF EXISTS set_updated_at()`);
 
     // VIEW

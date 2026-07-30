@@ -26,7 +26,10 @@ import { JwtStrategy } from './strategies/jwt.strategy.js';
         secret: config.getOrThrow<string>('JWT_SECRET'),
         signOptions: {
           // Cast required: @nestjs/jwt v11 types expiresIn as StringValue (ms lib)
-          expiresIn: config.get<string>('JWT_EXPIRES_IN', '15m') as unknown as number,
+          expiresIn: config.get<string>(
+            'JWT_EXPIRES_IN',
+            '15m',
+          ) as unknown as number,
         },
       }),
     }),
@@ -37,8 +40,8 @@ import { JwtStrategy } from './strategies/jwt.strategy.js';
   controllers: [AuthController],
   providers: [AuthService, JwtStrategy],
   exports: [
-    AuthService,    // Exported so other modules can call revokeAllUserTokens
-    JwtModule,      // Exported so other modules can use JwtService if needed
+    AuthService, // Exported so other modules can call revokeAllUserTokens
+    JwtModule, // Exported so other modules can use JwtService if needed
   ],
 })
 export class AuthModule {}

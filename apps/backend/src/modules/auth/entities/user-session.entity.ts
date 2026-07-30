@@ -1,5 +1,6 @@
 import {
   Column,
+  CreateDateColumn,
   Entity,
   JoinColumn,
   ManyToOne,
@@ -32,7 +33,7 @@ export class UserSession {
   @Column({ type: 'boolean', default: true, name: 'is_active' })
   isActive: boolean;
 
-  @Column({ type: 'timestamptz', name: 'login_at', default: () => 'now()' })
+  @CreateDateColumn({ type: 'timestamptz', name: 'login_at' })
   loginAt: Date;
 
   @Column({
