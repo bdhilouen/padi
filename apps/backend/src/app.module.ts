@@ -9,6 +9,7 @@ import { DashboardModule } from './modules/dashboard/dashboard.module.js';
 import { DocumentVaultModule } from './modules/document-vault/document-vault.module.js';
 import { LifeEventModule } from './modules/life-event/life-event.module.js';
 import { TimelineReminderModule } from './modules/timeline-reminder/timeline-reminder.module.js';
+import { UsersModule } from './modules/users/users.module.js';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { TimelineReminderModule } from './modules/timeline-reminder/timeline-rem
     }),
 
     AuthModule,
+    UsersModule,
     DashboardModule,
     TimelineReminderModule,
     LifeEventModule,
