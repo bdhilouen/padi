@@ -126,6 +126,9 @@ export class DashboardService {
 
     // Step 2: Call the appropriate mock service
     try {
+      // callMock() is intentionally synchronous — no await needed.
+      // If it ever becomes async, add await here to prevent a Promise
+      // object from being silently stored in the raw_data JSONB column.
       const rawData = this.callMock(userId, serviceName);
       const status = this.deriveStatus(serviceName, rawData);
 
@@ -299,6 +302,10 @@ export class DashboardService {
       [
         userId,
         result.serviceName,
+        // result.status is always non-null here: upsertServiceStatus is only
+        // called for rows where !consentRequired && !syncError (see filter above),
+        // which guarantees syncOneService returned a real status value.
+        // The ?? fallback is kept as a defensive type-safety guard.
         result.status ?? StatusEnum.ACTIVE,
         JSON.stringify(result.rawData),
         result.lastSyncedAt ?? new Date(),

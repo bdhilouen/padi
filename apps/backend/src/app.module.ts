@@ -4,7 +4,9 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller.js';
 import { AppService } from './app.service.js';
 import { AuthModule } from './modules/auth/auth.module.js';
-import { ConsentModule } from './modules/consent/consent.module.js';
+// ConsentModule is intentionally NOT imported here — it is already imported
+// transitively via DashboardModule, which re-exports ConsentService.
+// Importing it again at the root level would be redundant.
 import { DashboardModule } from './modules/dashboard/dashboard.module.js';
 import { DocumentVaultModule } from './modules/document-vault/document-vault.module.js';
 import { LifeEventModule } from './modules/life-event/life-event.module.js';
@@ -38,7 +40,6 @@ import { UsersModule } from './modules/users/users.module.js';
     TimelineReminderModule,
     LifeEventModule,
     DocumentVaultModule,
-    ConsentModule,
   ],
   controllers: [AppController],
   providers: [AppService],

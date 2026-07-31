@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import {
   deterministicFloat,
+  deterministicFutureDate,
   deterministicPastDate,
   deterministicPick,
 } from '../mock.helpers.js';
@@ -38,7 +39,7 @@ export class CoretaxMockService {
       tax_status: deterministicPick(userId, 'ctx-status', statuses),
       outstanding_amount_idr: outstanding,
       last_filing_date: deterministicPastDate(userId, 'ctx-filed', 180),
-      next_due_date: deterministicPastDate(userId, 'ctx-due', 30),
+      next_due_date: deterministicFutureDate(userId, 'ctx-due', 365),
     };
   }
 }
