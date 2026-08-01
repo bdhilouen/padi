@@ -8,6 +8,7 @@ export interface JwtPayload {
   sub: string; // user_id (UUID)
   email: string;
   role: UserRoleEnum;
+  sessionId: string | null;
 }
 
 /**
@@ -29,6 +30,11 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
   validate(payload: JwtPayload): JwtPayload {
     // Return value becomes request.user in the route handler
-    return { sub: payload.sub, email: payload.email, role: payload.role };
+    return {
+      sub: payload.sub,
+      email: payload.email,
+      role: payload.role,
+      sessionId: payload.sessionId,
+    };
   }
 }

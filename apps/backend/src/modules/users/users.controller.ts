@@ -63,7 +63,11 @@ export class UsersController {
   @Patch('me/password')
   @HttpCode(HttpStatus.OK)
   changePassword(@Req() req: AuthRequest, @Body() dto: ChangePasswordDto) {
-    return this.usersService.changePassword(req.user.sub, dto);
+    return this.usersService.changePassword(
+      req.user.sub,
+      req.user.sessionId,
+      dto,
+    );
   }
 
   /**

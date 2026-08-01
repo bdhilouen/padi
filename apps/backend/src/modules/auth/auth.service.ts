@@ -228,12 +228,33 @@ export class AuthService {
 
   // ─── Revoke all tokens for a user (used when password changes or admin suspends) ─
 
-  async revokeAllUserTokens(userId: string): Promise<void> {
-    await this.dataSource.query(
-      `UPDATE refresh_tokens SET revoked_at = now()
-       WHERE user_id = $1 AND revoked_at IS NULL`,
-      [userId],
-    );
+  async revokeAllSessions(
+    userId: string,
+    exceptSessionId?: string | null,
+  ): Promise<void> {
+    if (exceptSessionId) {
+      await this.dataSource.query(
+        `UPDATE refresh_tokens SET revoked_at = now()
+         WHERE user_id = $1 AND (user_session_id != $2 OR user_session_id IS NULL) AND revoked_at IS NULL`,
+        [userId, exceptSessionId],
+      );
+      await this.dataSource.query(
+        `UPDATE user_sessions SET is_active = false, logout_at = now()
+         WHERE user_id = $1 AND id != $2 AND is_active = true`,
+        [userId, exceptSessionId],
+      );
+    } else {
+      await this.dataSource.query(
+        `UPDATE refresh_tokens SET revoked_at = now()
+         WHERE user_id = $1 AND revoked_at IS NULL`,
+        [userId],
+      );
+      await this.dataSource.query(
+        `UPDATE user_sessions SET is_active = false, logout_at = now()
+         WHERE user_id = $1 AND is_active = true`,
+        [userId],
+      );
+    }
   }
 
   // ─── Private helpers ──────────────────────────────────────────────────────
@@ -246,6 +267,7 @@ export class AuthService {
       sub: user.id,
       email: user.email,
       role: user.role,
+      sessionId: sessionId ?? null,
     };
 
     const accessToken = this.jwtService.sign(payload);

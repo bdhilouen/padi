@@ -69,6 +69,7 @@ export class UsersService {
 
   async changePassword(
     userId: string,
+    sessionId: string | null,
     dto: ChangePasswordDto,
   ): Promise<{ message: string }> {
     // Cross-field validation: new_password and confirm_password must match
@@ -95,9 +96,9 @@ export class UsersService {
     user.passwordHash = await this.cryptoService.hashPassword(dto.new_password);
     await this.userRepo.save(user);
 
-    // Per backend-rules.md §4: revoke all refresh tokens for this user so
-    // other active sessions are logged out automatically
-    await this.authService.revokeAllUserTokens(userId);
+    // Per backend-rules.md §4: revoke all refresh tokens and sessions for this user EXCEPT
+    // the current session, so other active sessions are logged out automatically
+    await this.authService.revokeAllSessions(userId, sessionId);
 
     return { message: 'Password changed successfully' };
   }
@@ -149,7 +150,7 @@ export class UsersService {
     const user = await this.findActiveUserOrThrow(userId);
 
     // Revoke all tokens first so the account becomes immediately unusable
-    await this.authService.revokeAllUserTokens(userId);
+    await this.authService.revokeAllSessions(userId);
 
     // TypeORM soft delete sets deleted_at via @DeleteDateColumn
     await this.userRepo.softRemove(user);
