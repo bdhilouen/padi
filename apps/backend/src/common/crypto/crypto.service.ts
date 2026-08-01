@@ -1,6 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
-import { createHash, randomBytes } from 'crypto';
+import {
+  createCipheriv,
+  createDecipheriv,
+  createHash,
+  randomBytes,
+} from 'crypto';
 
 const BCRYPT_ROUNDS = 12;
 
@@ -11,9 +16,10 @@ const BCRYPT_ROUNDS = 12;
  *   - Password hashing and verification (bcrypt)
  *   - NIK encryption (pgp_sym_encrypt via raw SQL) and SHA-256 hashing
  *   - SHA-256 hashing for refresh token storage
+ *   - AES-256-GCM encryption/decryption for uploaded document files
  *
  * This service lives in common/ so it can be injected by any module that
- * needs it (auth, users, etc.) without creating cross-module dependencies.
+ * needs it (auth, users, document-vault, etc.) without creating cross-module dependencies.
  *
  * NIK encryption key is ALWAYS read from process.env.NIK_ENCRYPTION_KEY.
  * It is never hardcoded here or anywhere else in the codebase.
@@ -82,5 +88,57 @@ export class CryptoService {
   /** SHA-256 hash of a raw token for storage in refresh_tokens.token_hash. */
   hashToken(rawToken: string): string {
     return createHash('sha256').update(rawToken).digest('hex');
+  }
+
+  /**
+   * Returns the document encryption key from DOCUMENT_ENCRYPTION_KEY (or falls back
+   * to NIK_ENCRYPTION_KEY if DOCUMENT_ENCRYPTION_KEY is not set).
+   */
+  getDocumentEncryptionKey(): string {
+    const key =
+      process.env.DOCUMENT_ENCRYPTION_KEY ?? process.env.NIK_ENCRYPTION_KEY;
+    if (!key) {
+      throw new Error(
+        'DOCUMENT_ENCRYPTION_KEY environment variable is not set. ' +
+          'Add it to .env and never hardcode it.',
+      );
+    }
+    return key;
+  }
+
+  // ─── File Encryption (AES-256-GCM) ────────────────────────────────────────
+
+  /**
+   * Encrypts a Buffer using AES-256-GCM.
+   * Output structure: IV (12 bytes) + AuthTag (16 bytes) + Ciphertext
+   */
+  encryptBuffer(plaintext: Buffer): Buffer {
+    const key = createHash('sha256')
+      .update(this.getDocumentEncryptionKey())
+      .digest();
+    const iv = randomBytes(12);
+    const cipher = createCipheriv('aes-256-gcm', key, iv);
+
+    const encrypted = Buffer.concat([cipher.update(plaintext), cipher.final()]);
+    const tag = cipher.getAuthTag();
+
+    return Buffer.concat([iv, tag, encrypted]);
+  }
+
+  /**
+   * Decrypts a Buffer encrypted with encryptBuffer().
+   */
+  decryptBuffer(encryptedBuffer: Buffer): Buffer {
+    const key = createHash('sha256')
+      .update(this.getDocumentEncryptionKey())
+      .digest();
+    const iv = encryptedBuffer.subarray(0, 12);
+    const tag = encryptedBuffer.subarray(12, 28);
+    const ciphertext = encryptedBuffer.subarray(28);
+
+    const decipher = createDecipheriv('aes-256-gcm', key, iv);
+    decipher.setAuthTag(tag);
+
+    return Buffer.concat([decipher.update(ciphertext), decipher.final()]);
   }
 }
