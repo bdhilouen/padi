@@ -10,6 +10,7 @@ import { AuthModule } from './modules/auth/auth.module.js';
 import { DashboardModule } from './modules/dashboard/dashboard.module.js';
 import { DocumentVaultModule } from './modules/document-vault/document-vault.module.js';
 import { LifeEventModule } from './modules/life-event/life-event.module.js';
+import { NotificationsModule } from './modules/notifications/notifications.module.js';
 import { TimelineReminderModule } from './modules/timeline-reminder/timeline-reminder.module.js';
 import { UsersModule } from './modules/users/users.module.js';
 
@@ -40,6 +41,7 @@ import { UsersModule } from './modules/users/users.module.js';
     TimelineReminderModule,
     LifeEventModule,
     DocumentVaultModule,
+    NotificationsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
