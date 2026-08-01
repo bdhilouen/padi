@@ -3,6 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller.js';
 import { AppService } from './app.service.js';
+import { AdminModule } from './modules/admin/admin.module.js';
 import { AuthModule } from './modules/auth/auth.module.js';
 // ConsentModule is intentionally NOT imported here — it is already imported
 // transitively via DashboardModule, which re-exports ConsentService.
@@ -42,6 +43,7 @@ import { UsersModule } from './modules/users/users.module.js';
     LifeEventModule,
     DocumentVaultModule,
     NotificationsModule,
+    AdminModule,
   ],
   controllers: [AppController],
   providers: [AppService],
