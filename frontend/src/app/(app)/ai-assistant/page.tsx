@@ -34,7 +34,7 @@ export default function AIAssistantPage() {
 
   return (
     <div className="flex flex-col h-screen lg:h-screen page-enter w-full lg:px-0">
-      {/* Header */}
+      {/* Header
       <div className="py-6 px-4 border-b border-border flex items-center justify-between shrink-0">
         <div className="">
           <h1 className="font-display text-2xl font-bold text-foreground">AI Assistant</h1>
@@ -51,7 +51,7 @@ export default function AIAssistantPage() {
         >
           <Trash2 className="h-4 w-4" strokeWidth={1.5} />
         </Button>
-      </div>
+      </div> */}
 
       {/* Messages */}
       <ScrollArea className="flex-1 py-4 relative">

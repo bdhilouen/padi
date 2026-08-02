@@ -56,7 +56,7 @@
 /* ── Light Mode Tokens ── */
 :root {
   /* Brand */
-  --primary: oklch(0.51 0.22 258);
+  --primary: #00254D;
   --primary-foreground: oklch(1 0 0);
 
   /* Backgrounds */
@@ -102,7 +102,7 @@
   /* Sidebar */
   --sidebar: oklch(0.978 0 0);
   --sidebar-foreground: oklch(0.16 0.01 258);
-  --sidebar-primary: oklch(0.51 0.22 258);
+  --sidebar-primary: #00254D;
   --sidebar-primary-foreground: oklch(1 0 0);
   --sidebar-accent: oklch(0.96 0.008 258);
   --sidebar-accent-foreground: oklch(0.25 0.02 258);
@@ -225,10 +225,124 @@
   animation: fadeUp 1000ms ease-in-out both;
 }
 
+/* ── Staggered entrance animations ── */
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(48px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-up {
+  animation: slideUp 640ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.animate-slide-in-right {
+  animation: slideInRight 700ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.animate-fade-in-down {
+  animation: fadeInDown 500ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Slide in from bottom-right — for document images */
+@keyframes slideInBottomRight {
+  from {
+    opacity: 0;
+    transform: translate(60px, 40px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(0, 0);
+  }
+}
+
+.animate-slide-in-br {
+  animation: slideInBottomRight 1000ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Infinite Marquee Scroll */
+@keyframes scrollLeft {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-scroll-left {
+  animation: scrollLeft 25s linear infinite;
+}
+.animate-scroll-left:hover {
+  animation-play-state: paused;
+}
+
+/* CTA Batik Split Animation */
+@keyframes slideOutTL {
+  from {
+    opacity: 0;
+    transform: translate(50%, 50%) rotate(0deg);
+  }
+  to {
+    opacity: 0.15;
+    transform: translate(0, 0) rotate(-15deg);
+  }
+}
+@keyframes slideOutBR {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  to {
+    opacity: 0.15;
+    transform: translate(0, 0) rotate(-15deg);
+  }
+}
+
+.animate-slide-out-tl {
+  animation: slideOutTL 1200ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.animate-slide-out-br {
+  animation: slideOutBR 1200ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
 /* ── Reduced motion ── */
 @media (prefers-reduced-motion: reduce) {
   .page-enter,
-  .skeleton-pulse {
+  .skeleton-pulse,
+  .animate-slide-up,
+  .animate-slide-in-right,
+  .animate-fade-in-down,
+  .animate-slide-in-br,
+  .animate-slide-out-tl,
+  .animate-slide-out-br {
     animation: none;
   }
   * {

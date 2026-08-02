@@ -154,7 +154,7 @@ export default function DashboardPage() {
         </>
       ) : services ? (
         <>
-          <SummaryBar services={services} />
+          {/* <SummaryBar services={services} /> */}
           <h2 className="font-semibold text-foreground mb-4">Layanan Administrasi</h2>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {services.map((service) => (

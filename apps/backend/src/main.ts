@@ -1,8 +1,26 @@
+import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
+import { AppModule } from './app.module.js';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  await app.listen(process.env.PORT ?? 3000);
+
+  // Global prefix — all routes are under /api/v1
+  app.setGlobalPrefix('api/v1');
+
+  // Global validation pipe — reject unknown fields, auto-transform primitives
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+      transformOptions: { enableImplicitConversion: true },
+    }),
+  );
+
+  await app.listen(process.env.PORT ?? 3001);
 }
-bootstrap();
+bootstrap().catch((err: unknown) => {
+  console.error('Fatal startup error', err);
+  process.exit(1);
+});

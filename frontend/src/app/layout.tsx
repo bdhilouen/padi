@@ -19,7 +19,7 @@ const spaceGrotesk = Space_Grotesk({
 
 export const metadata: Metadata = {
   title: {
-    default: "CitizenHub — Dashboard Administrasi Indonesia",
+    default: "Padi — Dashboard Administrasi Indonesia",
     template: "%s | CitizenHub",
   },
   description:
@@ -29,7 +29,7 @@ export const metadata: Metadata = {
   creator: "CitizenHub",
   manifest: "/manifest.json",
   icons: {
-    icon: "/favicon.ico",
+    icon: "/LogoPadi.webp",
   },
 };
 
