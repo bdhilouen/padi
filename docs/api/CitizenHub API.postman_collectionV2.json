@@ -1,7 +1,7 @@
 {
   "info": {
-    "name": "CitizenHub API v2",
-    "description": "API contract CitizenHub (prototipe). Base path: /api/v1. Semua endpoint kecuali Auth dan Life Events (master data) butuh Bearer Token. Role: USER dan ADMINISTRATOR.",
+    "name": "PADI API v2",
+    "description": "API contract PADI (prototipe). Base path: /api/v1. Semua endpoint kecuali Auth dan Life Events (master data) butuh Bearer Token. Role: USER dan ADMINISTRATOR.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {

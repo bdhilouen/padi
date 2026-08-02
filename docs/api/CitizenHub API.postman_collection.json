@@ -1,8 +1,8 @@
 {
   "info": {
     "_postman_id": "f407b307-8176-4387-999d-bcfa39c90d3b",
-    "name": "CitizenHub API",
-    "description": "API contract untuk platform CitizenHub (prototipe). Base path: /api/v1. Semua endpoint kecuali Auth dan Life Events (master data) butuh Bearer Token.",
+    "name": "PADI API",
+    "description": "API contract untuk platform PADI (prototipe). Base path: /api/v1. Semua endpoint kecuali Auth dan Life Events (master data) butuh Bearer Token.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "_exporter_id": "52897318",
     "_collection_link": "https://go.postman.co/collection/52897318-f407b307-8176-4387-999d-bcfa39c90d3b?source=collection_link"
