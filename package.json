@@ -1,0 +1,7 @@
+{
+  "name": "citizenhub",
+  "private": true,
+  "workspaces": [
+    "apps/*"
+  ]
+}

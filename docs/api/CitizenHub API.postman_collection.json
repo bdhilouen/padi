@@ -1,0 +1,915 @@
+{
+  "info": {
+    "_postman_id": "f407b307-8176-4387-999d-bcfa39c90d3b",
+    "name": "CitizenHub API",
+    "description": "API contract untuk platform CitizenHub (prototipe). Base path: /api/v1. Semua endpoint kecuali Auth dan Life Events (master data) butuh Bearer Token.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "52897318",
+    "_collection_link": "https://go.postman.co/collection/52897318-f407b307-8176-4387-999d-bcfa39c90d3b?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "1. Auth",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nik\": \"3201012501990001\",\n  \"email\": \"keivra@example.com\",\n  \"password\": \"Password123!\",\n  \"full_name\": \"Keivra Ananta\",\n  \"phone_number\": \"081234567890\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "register"
+              ]
+            },
+            "description": "Response 201: { id, email, full_name, phone_number, created_at } — nik/password_hash tidak pernah dikembalikan ke client."
+          },
+          "response": []
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200 || pm.response.code === 201) {\r",
+                  "    const body = pm.response.json();\r",
+                  "\r",
+                  "    if (body.accessToken) {\r",
+                  "        pm.collectionVariables.set(\"accessToken\", body.accessToken);\r",
+                  "    }\r",
+                  "    if (body.refreshToken) {\r",
+                  "        pm.collectionVariables.set(\"refreshToken\", body.refreshToken);\r",
+                  "        console.log(\"refreshToken tersimpan (backend nyimpen hash-nya di tabel refresh_tokens)\");\r",
+                  "    }\r",
+                  "\r",
+                  "    pm.test(\"Login berhasil\", function () {\r",
+                  "        pm.expect(pm.response.code).to.be.oneOf([200, 201]);\r",
+                  "    });\r",
+                  "    pm.test(\"Response berisi accessToken dan refreshToken\", function () {\r",
+                  "        pm.expect(body).to.have.property(\"accessToken\");\r",
+                  "        pm.expect(body).to.have.property(\"refreshToken\");\r",
+                  "    });\r",
+                  "} else {\r",
+                  "    pm.test(\"Login gagal\", function () {\r",
+                  "        pm.expect.fail(`Status ${pm.response.code}: ${pm.response.body}`);\r",
+                  "    });\r",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nik\": \"3201012501990001\",\n  \"password\": \"Password123!\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "description": "SSO pakai NIK atau Email + Password (FR-012). Response 200: { accessToken, refreshToken, user: { id, email, full_name } }"
+          },
+          "response": []
+        },
+        {
+          "name": "Refresh Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {\r",
+                  "    const body = pm.response.json();\r",
+                  "\r",
+                  "    if (body.accessToken) {\r",
+                  "        pm.collectionVariables.set(\"accessToken\", body.accessToken);\r",
+                  "        console.log(\"accessToken diperbarui\");\r",
+                  "    }\r",
+                  "\r",
+                  "    // Kalau backend nerapin token rotation, refreshToken lama otomatis\r",
+                  "    // ke-revoke dan yang baru wajib disimpan, atau request selanjutnya bakal gagal\r",
+                  "    if (body.refreshToken) {\r",
+                  "        pm.collectionVariables.set(\"refreshToken\", body.refreshToken);\r",
+                  "        console.log(\"refreshToken juga diperbarui (rotation aktif)\");\r",
+                  "    }\r",
+                  "\r",
+                  "    pm.test(\"Refresh berhasil\", function () {\r",
+                  "        pm.expect(pm.response.code).to.equal(200);\r",
+                  "    });\r",
+                  "} else if (pm.response.code === 401) {\r",
+                  "    pm.test(\"Refresh token expired/revoked, harus login ulang\", function () {\r",
+                  "        pm.expect(pm.response.code).to.equal(401);\r",
+                  "    });\r",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/refresh",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "refresh"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"refreshToken\": \"{{refreshToken}}\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/logout",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "logout"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "2. User Profile",
+      "item": [
+        {
+          "name": "Get My Profile",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "me"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update My Profile",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"full_name\": \"Keivra Ananta Putra\",\n  \"phone_number\": \"081298765432\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "me"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Request Account Deletion",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "me"
+              ]
+            },
+            "description": "Set kolom deleted_at (soft delete). Hard delete dilakukan cron job backend setelah 24 jam sesuai kebijakan Disposal di SRS."
+          },
+          "response": []
+        },
+        {
+          "name": "List Active Sessions",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/me/sessions",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "me",
+                "sessions"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Revoke Specific Session",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/me/sessions/:sessionId",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "me",
+                "sessions",
+                ":sessionId"
+              ],
+              "variable": [
+                {
+                  "key": "sessionId",
+                  "value": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "3. Consent Management",
+      "item": [
+        {
+          "name": "List My Consents",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/consent",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "consent"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Grant Consent",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"service_name\": \"CORETAX\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/consent",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "consent"
+              ]
+            },
+            "description": "service_name enum: CORETAX, BPJS, SATUSEHAT, OSS, SAMSAT, PLN, PDAM, ETLE, MPASPOR. Wajib dipanggil sebelum akses API eksternal apapun (FR-013)."
+          },
+          "response": []
+        },
+        {
+          "name": "Revoke Consent",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/consent/:consentId/revoke",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "consent",
+                ":consentId",
+                "revoke"
+              ],
+              "variable": [
+                {
+                  "key": "consentId",
+                  "value": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "4. Dashboard",
+      "item": [
+        {
+          "name": "Get Dashboard Summary",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/dashboard",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "dashboard"
+              ]
+            },
+            "description": "Response: array of { service_name, status (ACTIVE|WARNING|EXPIRED), raw_data, last_synced_at }. FR-001, FR-002."
+          },
+          "response": []
+        },
+        {
+          "name": "Refresh Dashboard (Manual Sync)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/dashboard/refresh",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "dashboard",
+                "refresh"
+              ]
+            },
+            "description": "FR-003: trigger sync ulang ke Mock API lewat API Gateway."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "5. Timeline & Deadlines",
+      "item": [
+        {
+          "name": "List Deadlines",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/deadlines?status=ACTIVE",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "deadlines"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "ACTIVE",
+                  "description": "optional: ACTIVE | WARNING | EXPIRED"
+                }
+              ]
+            },
+            "description": "FR-004: daftar kronologis tenggat waktu administrasi."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Deadline Detail",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/deadlines/:deadlineId",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "deadlines",
+                ":deadlineId"
+              ],
+              "variable": [
+                {
+                  "key": "deadlineId",
+                  "value": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "6. Notifications",
+      "item": [
+        {
+          "name": "List Notifications",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/notifications?unread=true",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "notifications"
+              ],
+              "query": [
+                {
+                  "key": "unread",
+                  "value": "true"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Mark Notification as Read",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/notifications/:notificationId/read",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "notifications",
+                ":notificationId",
+                "read"
+              ],
+              "variable": [
+                {
+                  "key": "notificationId",
+                  "value": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "7. Life Event Assistant",
+      "item": [
+        {
+          "name": "List Life Events (Master Data)",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/life-events",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "life-events"
+              ]
+            },
+            "description": "FR-006. Returns: MENIKAH, PUNYA_ANAK, PINDAH_RUMAH, BUKA_USAHA."
+          },
+          "response": []
+        },
+        {
+          "name": "Select Life Event",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"life_event_id\": \"<uuid dari life_events>\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/life-events/select",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "life-events",
+                "select"
+              ]
+            },
+            "description": "FR-007: backend auto-generate checklist_items berdasarkan life_event yang dipilih. Response berisi selection_id, simpan ke {{selectionId}}."
+          },
+          "response": []
+        },
+        {
+          "name": "List My Selections",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/life-events/selections",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "life-events",
+                "selections"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Checklist Items by Selection",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/life-events/selections/{{selectionId}}/checklist",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "life-events",
+                "selections",
+                "{{selectionId}}",
+                "checklist"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Toggle Checklist Item",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"is_completed\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/checklist-items/:itemId",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "checklist-items",
+                ":itemId"
+              ],
+              "variable": [
+                {
+                  "key": "itemId",
+                  "value": ""
+                }
+              ]
+            },
+            "description": "FR-008."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "8. Document Vault",
+      "item": [
+        {
+          "name": "Upload Document",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "value": ""
+                },
+                {
+                  "key": "document_type",
+                  "type": "text",
+                  "value": "KTP"
+                },
+                {
+                  "key": "expiry_date",
+                  "type": "text",
+                  "value": "2030-01-01"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/documents",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "documents"
+              ]
+            },
+            "description": "FR-009, FR-010: file dienkripsi backend sebelum disimpan ke S3. document_type contoh: KTP, KK, NPWP, SIM."
+          },
+          "response": []
+        },
+        {
+          "name": "List My Documents",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/documents",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "documents"
+              ]
+            },
+            "description": "Response tidak include encrypted_url langsung, hanya metadata (id, document_type, original_filename, expiry_date, uploaded_at)."
+          },
+          "response": []
+        },
+        {
+          "name": "Verify Identity to Preview Document",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"password\": \"Password123!\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/documents/{{documentId}}/verify",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "documents",
+                "{{documentId}}",
+                "verify"
+              ]
+            },
+            "description": "FR-011: re-auth wajib sebelum dapat preview URL. Response: { previewUrl, expiresIn }"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Document",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/documents/{{documentId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "documents",
+                "{{documentId}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "9. Admin - Audit Logs",
+      "item": [
+        {
+          "name": "List Audit Logs",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/audit-logs?from=2026-07-01&to=2026-07-27",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "audit-logs"
+              ],
+              "query": [
+                {
+                  "key": "from",
+                  "value": "2026-07-01"
+                },
+                {
+                  "key": "to",
+                  "value": "2026-07-27"
+                },
+                {
+                  "key": "user_id",
+                  "value": "",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "FR-014, NFR-003. Khusus role Administrator."
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{accessToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3001/api/v1"
+    },
+    {
+      "key": "accessToken",
+      "value": ""
+    },
+    {
+      "key": "refreshToken",
+      "value": ""
+    },
+    {
+      "key": "documentId",
+      "value": ""
+    },
+    {
+      "key": "selectionId",
+      "value": ""
+    }
+  ]
+}
