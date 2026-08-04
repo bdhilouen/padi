@@ -1,0 +1,508 @@
+{
+  "info": {
+    "name": "PADI API v2",
+    "description": "API contract PADI (prototipe). Base path: /api/v1. Semua endpoint kecuali Auth dan Life Events (master data) butuh Bearer Token. Role: USER dan ADMINISTRATOR.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }]
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3001/api/v1" },
+    { "key": "accessToken", "value": "" },
+    { "key": "refreshToken", "value": "" },
+    { "key": "documentId", "value": "" },
+    { "key": "selectionId", "value": "" },
+    { "key": "sessionId", "value": "" },
+    { "key": "adminUserId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "1. Auth",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/auth/register", "host": ["{{baseUrl}}"], "path": ["auth", "register"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nik\": \"3201012501990001\",\n  \"email\": \"keivra@example.com\",\n  \"password\": \"Password123!\",\n  \"full_name\": \"Keivra Ananta\",\n  \"phone_number\": \"081234567890\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "description": "Role otomatis USER. Response 201: { id, email, full_name, phone_number, role, created_at }. NIK/password tidak pernah dikembalikan."
+          }
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200 || pm.response.code === 201) {",
+                  "    const body = pm.response.json();",
+                  "    if (body.accessToken) pm.collectionVariables.set(\"accessToken\", body.accessToken);",
+                  "    if (body.refreshToken) pm.collectionVariables.set(\"refreshToken\", body.refreshToken);",
+                  "    pm.test(\"Login berhasil\", function () {",
+                  "        pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "    });",
+                  "    pm.test(\"Response berisi accessToken dan refreshToken\", function () {",
+                  "        pm.expect(body).to.have.property(\"accessToken\");",
+                  "        pm.expect(body).to.have.property(\"refreshToken\");",
+                  "    });",
+                  "} else {",
+                  "    pm.test(\"Login gagal\", function () {",
+                  "        pm.expect.fail(`Status ${pm.response.code}: ${pm.response.body}`);",
+                  "    });",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth", "login"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nik\": \"3201012501990001\",\n  \"password\": \"Password123!\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "description": "SSO pakai NIK atau Email + Password (FR-012). Backend insert row baru ke user_sessions dan refresh_tokens."
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const body = pm.response.json();",
+                  "    if (body.accessToken) pm.collectionVariables.set(\"accessToken\", body.accessToken);",
+                  "    if (body.refreshToken) pm.collectionVariables.set(\"refreshToken\", body.refreshToken);",
+                  "    pm.test(\"Refresh berhasil\", function () {",
+                  "        pm.expect(pm.response.code).to.equal(200);",
+                  "    });",
+                  "} else if (pm.response.code === 401) {",
+                  "    pm.test(\"Refresh token expired/revoked\", function () {",
+                  "        pm.expect(pm.response.code).to.equal(401);",
+                  "    });",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/auth/refresh", "host": ["{{baseUrl}}"], "path": ["auth", "refresh"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "description": "Backend cek token_hash di tabel refresh_tokens (revoked_at IS NULL, expires_at > now()). Kalau rotation aktif, refreshToken lama otomatis revoke dan diganti baru."
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/auth/logout", "host": ["{{baseUrl}}"], "path": ["auth", "logout"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "description": "Backend set revoked_at di refresh_tokens dan is_active=false + logout_at di user_sessions terkait."
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. User Profile",
+      "item": [
+        {
+          "name": "Get My Profile",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/users/me", "host": ["{{baseUrl}}"], "path": ["users", "me"] }
+          }
+        },
+        {
+          "name": "Update My Profile",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/users/me", "host": ["{{baseUrl}}"], "path": ["users", "me"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"full_name\": \"Keivra Ananta Putra\",\n  \"phone_number\": \"081298765432\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "description": "Hanya untuk data profil dasar. Ganti password dan NIK pakai endpoint terpisah."
+          }
+        },
+        {
+          "name": "Change Password",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/users/me/password", "host": ["{{baseUrl}}"], "path": ["users", "me", "password"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"old_password\": \"Password123!\",\n  \"new_password\": \"NewPassword456!\",\n  \"confirm_password\": \"NewPassword456!\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "description": "Validasi terpisah dari update profil biasa. Setelah berhasil, backend sebaiknya revoke semua refresh_tokens milik user ini (kecuali sesi yang sedang dipakai), memaksa device lain login ulang."
+          }
+        },
+        {
+          "name": "List Active Sessions",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/users/me/sessions", "host": ["{{baseUrl}}"], "path": ["users", "me", "sessions"] },
+            "description": "Response: array of { id, device_name, user_agent, ip_address, login_at, last_activity_at, is_active }."
+          }
+        },
+        {
+          "name": "Revoke Specific Session",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/users/me/sessions/{{sessionId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "me", "sessions", "{{sessionId}}"]
+            },
+            "description": "Force-logout dari device tertentu. Backend revoke refresh_tokens yang punya user_session_id ini, dan set user_sessions.is_active=false."
+          }
+        },
+        {
+          "name": "Request Account Deletion",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{baseUrl}}/users/me", "host": ["{{baseUrl}}"], "path": ["users", "me"] },
+            "description": "Set deleted_at (soft delete). Hard delete dijalankan cron job setelah 24 jam sesuai kebijakan Disposal SRS."
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Consent Management",
+      "item": [
+        {
+          "name": "List My Consents",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/consent", "host": ["{{baseUrl}}"], "path": ["consent"] }
+          }
+        },
+        {
+          "name": "Grant Consent",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/consent", "host": ["{{baseUrl}}"], "path": ["consent"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"service_name\": \"CORETAX\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "description": "service_name enum: CORETAX, BPJS, SATUSEHAT, OSS, SAMSAT, PLN, PDAM, ETLE, MPASPOR."
+          }
+        },
+        {
+          "name": "Revoke Consent",
+          "request": {
+            "method": "PATCH",
+            "url": {
+              "raw": "{{baseUrl}}/consent/:consentId/revoke",
+              "host": ["{{baseUrl}}"],
+              "path": ["consent", ":consentId", "revoke"],
+              "variable": [{ "key": "consentId", "value": "" }]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Dashboard",
+      "item": [
+        {
+          "name": "Get Dashboard Summary",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/dashboard", "host": ["{{baseUrl}}"], "path": ["dashboard"] },
+            "description": "raw_data TIDAK di-expose default. Response mengembalikan field yang dipakai UI saja (service_name, status, last_synced_at). Bentuk akhir/shaping response menyesuaikan desain frontend."
+          }
+        },
+        {
+          "name": "Refresh Dashboard (Manual Sync)",
+          "request": {
+            "method": "POST",
+            "url": { "raw": "{{baseUrl}}/dashboard/refresh", "host": ["{{baseUrl}}"], "path": ["dashboard", "refresh"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Timeline & Deadlines",
+      "item": [
+        {
+          "name": "List Deadlines",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/deadlines?status=ACTIVE",
+              "host": ["{{baseUrl}}"],
+              "path": ["deadlines"],
+              "query": [{ "key": "status", "value": "ACTIVE", "description": "optional: ACTIVE | WARNING | EXPIRED, dihitung backend dari due_date, bukan kolom tersimpan" }]
+            }
+          }
+        },
+        {
+          "name": "Get Deadline Detail",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/deadlines/:deadlineId",
+              "host": ["{{baseUrl}}"],
+              "path": ["deadlines", ":deadlineId"],
+              "variable": [{ "key": "deadlineId", "value": "" }]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Notifications",
+      "item": [
+        {
+          "name": "List Notifications",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/notifications?unread=true",
+              "host": ["{{baseUrl}}"],
+              "path": ["notifications"],
+              "query": [{ "key": "unread", "value": "true" }]
+            },
+            "description": "Response: array of { id, title, type, message, sent_at, read_at }. Read-only, tidak ada CRUD selain mark as read."
+          }
+        },
+        {
+          "name": "Mark Notification as Read",
+          "request": {
+            "method": "PATCH",
+            "url": {
+              "raw": "{{baseUrl}}/notifications/:notificationId/read",
+              "host": ["{{baseUrl}}"],
+              "path": ["notifications", ":notificationId", "read"],
+              "variable": [{ "key": "notificationId", "value": "" }]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "7. Life Event Assistant",
+      "item": [
+        {
+          "name": "List Life Events (Master Data)",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/life-events", "host": ["{{baseUrl}}"], "path": ["life-events"] }
+          }
+        },
+        {
+          "name": "Select Life Event",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/life-events/select", "host": ["{{baseUrl}}"], "path": ["life-events", "select"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"life_event_id\": \"<uuid dari life_events>\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "description": "Backend copy dari life_event_templates (termasuk display_order) ke checklist_items untuk user ini."
+          }
+        },
+        {
+          "name": "List My Selections",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/life-events/selections", "host": ["{{baseUrl}}"], "path": ["life-events", "selections"] }
+          }
+        },
+        {
+          "name": "Get Checklist Items by Selection",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/life-events/selections/{{selectionId}}/checklist",
+              "host": ["{{baseUrl}}"],
+              "path": ["life-events", "selections", "{{selectionId}}", "checklist"]
+            },
+            "description": "Response terurut berdasarkan display_order."
+          }
+        },
+        {
+          "name": "Toggle Checklist Item",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{baseUrl}}/checklist-items/:itemId",
+              "host": ["{{baseUrl}}"],
+              "path": ["checklist-items", ":itemId"],
+              "variable": [{ "key": "itemId", "value": "" }]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"is_completed\": true\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "8. Document Vault",
+      "item": [
+        {
+          "name": "Upload Document",
+          "request": {
+            "method": "POST",
+            "url": { "raw": "{{baseUrl}}/documents", "host": ["{{baseUrl}}"], "path": ["documents"] },
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "file", "type": "file", "src": "" },
+                { "key": "document_type", "type": "text", "value": "KTP" },
+                { "key": "expiry_date", "type": "text", "value": "2030-01-01" }
+              ]
+            },
+            "description": "File dienkripsi backend sebelum disimpan ke S3. Backend juga menyimpan mime_type dan file_size dari file yang diupload (divalidasi, jangan percaya field dari client)."
+          }
+        },
+        {
+          "name": "List My Documents",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/documents", "host": ["{{baseUrl}}"], "path": ["documents"] },
+            "description": "Response: metadata saja (id, document_type, original_filename, mime_type, file_size, expiry_date, uploaded_at). encrypted_url tidak pernah di-expose langsung."
+          }
+        },
+        {
+          "name": "Verify Identity & Get Preview URL",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{baseUrl}}/documents/{{documentId}}/verify",
+              "host": ["{{baseUrl}}"],
+              "path": ["documents", "{{documentId}}", "verify"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"password\": \"Password123!\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "description": "Re-auth wajib. Response langsung berisi signed URL: { previewUrl, expiresIn }. Tidak ada endpoint /preview terpisah."
+          }
+        },
+        {
+          "name": "Delete Document",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/documents/{{documentId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["documents", "{{documentId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "9. Admin",
+      "item": [
+        {
+          "name": "List All Users",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/admin/users?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "users"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "20" },
+                { "key": "search", "value": "", "disabled": true }
+              ]
+            },
+            "description": "Khusus role ADMINISTRATOR. Response: paginated list user (tanpa nik_encrypted, password_hash)."
+          }
+        },
+        {
+          "name": "Get User Detail",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/admin/users/{{adminUserId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "users", "{{adminUserId}}"]
+            }
+          }
+        },
+        {
+          "name": "Update User Status (Suspend/Activate)",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{baseUrl}}/admin/users/{{adminUserId}}/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "users", "{{adminUserId}}", "status"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"is_active\": false\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "description": "Suspend/aktifkan akun user. Idealnya juga otomatis revoke semua refresh_tokens user tsb kalau is_active diset false."
+          }
+        },
+        {
+          "name": "List Audit Logs",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/admin/audit-logs?from=2026-07-01&to=2026-07-27",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "audit-logs"],
+              "query": [
+                { "key": "from", "value": "2026-07-01" },
+                { "key": "to", "value": "2026-07-27" },
+                { "key": "user_id", "value": "", "disabled": true }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,16 +1,16 @@
 ---
-name: citizenhub-context
-description: Loads the overall project context, architecture, coding conventions, and development workflow for the CitizenHub backend before implementing features.
+name: padi-context
+description: Loads the overall project context, architecture, coding conventions, and development workflow for the PADI backend before implementing features.
 metadata:
-  project: CitizenHub
+  project: PADI
   stack: NestJS, TypeORM, PostgreSQL, Redis, Docker
 ---
 
-# CitizenHub Context
+# PADI Context
 
 ## Purpose
 
-This skill provides the AI agent with the overall context of the CitizenHub backend project.
+This skill provides the AI agent with the overall context of the PADI backend project.
 
 Before implementing any feature, understand the project's architecture, coding conventions, and documentation structure.
 
@@ -30,7 +30,7 @@ This skill should be activated whenever working on:
 
 # Project Overview
 
-CitizenHub is a backend service built with:
+PADI is a backend service built with:
 
 - NestJS
 - TypeORM

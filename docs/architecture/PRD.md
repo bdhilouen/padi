@@ -1,8 +1,8 @@
-# Product Requirements Document — CitizenHub
+# Product Requirements Document — PADI (Portal Administrasi Indonesia)
 
 ## 1. Product Summary
 
-CitizenHub is a national-level unified administration dashboard platform that integrates various government public services (Coretax DJP, BPJS Kesehatan, SATUSEHAT, SAMSAT, PLN, PDAM, ETLE, M-Paspor) into a single cohesive interface.
+PADI (Portal Administrasi Indonesia) is a national-level unified administration dashboard platform that integrates various government public services (Coretax DJP, BPJS Kesehatan, SATUSEHAT, SAMSAT, PLN, PDAM, ETLE, M-Paspor) into a single cohesive interface.
 
 This system serves as an **integration layer**, not a replacement for existing government systems. Key features include: Unified Dashboard, Administration Timeline, Smart Reminder, Life Event Assistant, Digital Document Vault, and Notification Center.
 
@@ -12,7 +12,7 @@ In this prototype release, all external data is sourced from a **Mock API** that
 
 ## 2. Background & Problem Statement
 
-Indonesian citizens must manage numerous administrative obligations (taxes, BPJS, driver's licenses, civil registry documents, etc.) scattered across various different agency systems, each with its own login, interface, and workflow. Consequently, people often pay or renew documents late because there is no single place that summarizes everything. CitizenHub unifies the status of all these administrative obligations in one dashboard and alerts users before deadlines pass.
+Indonesian citizens must manage numerous administrative obligations (taxes, BPJS, driver's licenses, civil registry documents, etc.) scattered across various different agency systems, each with its own login, interface, and workflow. Consequently, people often pay or renew documents late because there is no single place that summarizes everything. PADI unifies the status of all these administrative obligations in one dashboard and alerts users before deadlines pass.
 
 ---
 

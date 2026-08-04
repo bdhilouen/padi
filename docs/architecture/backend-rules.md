@@ -1,4 +1,4 @@
-# Backend Rules - CitizenHub
+# Backend Rules — PADI (Portal Administrasi Indonesia)
 
 Technical convention guide for the NestJS + PostgreSQL backend. The AI agent must follow these rules unless there are explicit instructions overriding them in a specific conversation or task.
 
@@ -59,7 +59,7 @@ Do not place cross-domain logic into one massive service. For example, NIK encry
 - Consistent success responses: data is directly in the body (no `{ success: true, data: ... }` wrapper unless the frontend team explicitly requests it).
 - Error responses follow the default NestJS exception filter format: `{ statusCode, message, error }`.
 - Fields not used by the UI **do not need** to be sent raw. Prune them at the DTO/serializer level (example: `raw_data` in the dashboard, `encrypted_url` in the document vault).
-- Pagination uses `page` and `limit` query parameters, and the response includes metadata `{ total, page, limit }`.
+- Pagination uses `page` and `limit` query parameters. Non-paginated endpoints return data directly (flat arrays or objects). For paginated list endpoints specifically (e.g., `deadlines`, `admin/users`, `admin/audit-logs`), the response format is `{ data: T[], meta: { total, page, limit } }`.
 
 ## 8. Input Validation
 
@@ -83,6 +83,6 @@ Some of the following decisions are deferred pending real needs from the fronten
 
 ## Notes on overriding installed skills
 
-- The `api-design` and `backend-patterns` skills suggest a response envelope `{ success, data }` or `{ data, meta }`. This project DOES NOT use that. Follow the flat response convention in section 7 of this document.
+- The `api-design` and `backend-patterns` skills suggest a response envelope `{ success, data }` or generic `{ data, meta }` wrapper for all responses. This project DOES NOT use that for non-paginated endpoints (follow section 7: flat arrays/objects for standard endpoints, `{ data, meta }` specifically for paginated list endpoints).
 - The `backend-patterns` skill demonstrates manual auth (`verifyToken()`, `requireAuth()` as regular functions). This project uses native NestJS `JwtAuthGuard` + `RolesGuard` (see the `nestjs-patterns` skill and section 4 of this document). Do not create manual auth checking in controllers/services.
 - The `database-migrations` skill does not have specific TypeORM examples. Use native commands: `typeorm migration:generate`, `migration:run`, `migration:revert`. Zero-downtime principles (CONCURRENTLY index, expand-contract) may be ignored for this prototype unless stated otherwise.

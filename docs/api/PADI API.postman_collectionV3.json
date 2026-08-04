@@ -1,7 +1,7 @@
 {
   "info": {
-    "name": "CitizenHub API v2",
-    "description": "API contract CitizenHub (prototipe). Base path: /api/v1. Semua endpoint kecuali Auth dan Life Events (master data) butuh Bearer Token. Role: USER dan ADMINISTRATOR.",
+    "name": "PADI API v3 (Final)",
+    "description": "API contract PADI (prototipe). Base path: /api/v1. Semua endpoint kecuali Auth dan Life Events master data butuh Bearer Token. Response convention: endpoint LIST yang PAGINATED (Deadlines, Admin Users, Admin Audit Logs) mengembalikan { data: [...], meta: { total, page, limit } }. Semua endpoint lain mengembalikan flat object/array langsung tanpa wrapper.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
@@ -13,7 +13,11 @@
     { "key": "accessToken", "value": "" },
     { "key": "refreshToken", "value": "" },
     { "key": "documentId", "value": "" },
+    { "key": "previewToken", "value": "" },
     { "key": "selectionId", "value": "" },
+    { "key": "checklistItemId", "value": "" },
+    { "key": "deadlineId", "value": "" },
+    { "key": "notificationId", "value": "" },
     { "key": "sessionId", "value": "" },
     { "key": "adminUserId", "value": "" }
   ],
@@ -33,7 +37,7 @@
               "raw": "{\n  \"nik\": \"3201012501990001\",\n  \"email\": \"keivra@example.com\",\n  \"password\": \"Password123!\",\n  \"full_name\": \"Keivra Ananta\",\n  \"phone_number\": \"081234567890\"\n}",
               "options": { "raw": { "language": "json" } }
             },
-            "description": "Role otomatis USER. Response 201: { id, email, full_name, phone_number, role, created_at }. NIK/password tidak pernah dikembalikan."
+            "description": "Role otomatis USER. Response 201: { id, email, full_name, phone_number, role, created_at }."
           }
         },
         {
@@ -49,10 +53,6 @@
                   "    if (body.refreshToken) pm.collectionVariables.set(\"refreshToken\", body.refreshToken);",
                   "    pm.test(\"Login berhasil\", function () {",
                   "        pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
-                  "    });",
-                  "    pm.test(\"Response berisi accessToken dan refreshToken\", function () {",
-                  "        pm.expect(body).to.have.property(\"accessToken\");",
-                  "        pm.expect(body).to.have.property(\"refreshToken\");",
                   "    });",
                   "} else {",
                   "    pm.test(\"Login gagal\", function () {",
@@ -74,7 +74,7 @@
               "raw": "{\n  \"nik\": \"3201012501990001\",\n  \"password\": \"Password123!\"\n}",
               "options": { "raw": { "language": "json" } }
             },
-            "description": "SSO pakai NIK atau Email + Password (FR-012). Backend insert row baru ke user_sessions dan refresh_tokens."
+            "description": "SSO pakai NIK atau Email + Password. Access token sekarang membawa sessionId secara internal (dipakai backend untuk membedakan device saat revoke session) — tidak perlu dikirim manual oleh client mana pun."
           }
         },
         {
@@ -88,13 +88,6 @@
                   "    const body = pm.response.json();",
                   "    if (body.accessToken) pm.collectionVariables.set(\"accessToken\", body.accessToken);",
                   "    if (body.refreshToken) pm.collectionVariables.set(\"refreshToken\", body.refreshToken);",
-                  "    pm.test(\"Refresh berhasil\", function () {",
-                  "        pm.expect(pm.response.code).to.equal(200);",
-                  "    });",
-                  "} else if (pm.response.code === 401) {",
-                  "    pm.test(\"Refresh token expired/revoked\", function () {",
-                  "        pm.expect(pm.response.code).to.equal(401);",
-                  "    });",
                   "}"
                 ],
                 "type": "text/javascript"
@@ -110,8 +103,7 @@
               "mode": "raw",
               "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}",
               "options": { "raw": { "language": "json" } }
-            },
-            "description": "Backend cek token_hash di tabel refresh_tokens (revoked_at IS NULL, expires_at > now()). Kalau rotation aktif, refreshToken lama otomatis revoke dan diganti baru."
+            }
           }
         },
         {
@@ -124,8 +116,7 @@
               "mode": "raw",
               "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}",
               "options": { "raw": { "language": "json" } }
-            },
-            "description": "Backend set revoked_at di refresh_tokens dan is_active=false + logout_at di user_sessions terkait."
+            }
           }
         }
       ]
@@ -150,8 +141,7 @@
               "mode": "raw",
               "raw": "{\n  \"full_name\": \"Keivra Ananta Putra\",\n  \"phone_number\": \"081298765432\"\n}",
               "options": { "raw": { "language": "json" } }
-            },
-            "description": "Hanya untuk data profil dasar. Ganti password dan NIK pakai endpoint terpisah."
+            }
           }
         },
         {
@@ -165,7 +155,7 @@
               "raw": "{\n  \"old_password\": \"Password123!\",\n  \"new_password\": \"NewPassword456!\",\n  \"confirm_password\": \"NewPassword456!\"\n}",
               "options": { "raw": { "language": "json" } }
             },
-            "description": "Validasi terpisah dari update profil biasa. Setelah berhasil, backend sebaiknya revoke semua refresh_tokens milik user ini (kecuali sesi yang sedang dipakai), memaksa device lain login ulang."
+            "description": "Setelah berhasil, semua device/session LAIN otomatis logout (refresh_tokens direvoke, user_sessions dinonaktifkan). Session yang sedang lu pakai buat request ini tetap aktif — diidentifikasi lewat sessionId di dalam access token, bukan dari data yang lu kirim."
           }
         },
         {
@@ -184,8 +174,7 @@
               "raw": "{{baseUrl}}/users/me/sessions/{{sessionId}}",
               "host": ["{{baseUrl}}"],
               "path": ["users", "me", "sessions", "{{sessionId}}"]
-            },
-            "description": "Force-logout dari device tertentu. Backend revoke refresh_tokens yang punya user_session_id ini, dan set user_sessions.is_active=false."
+            }
           }
         },
         {
@@ -193,7 +182,7 @@
           "request": {
             "method": "DELETE",
             "url": { "raw": "{{baseUrl}}/users/me", "host": ["{{baseUrl}}"], "path": ["users", "me"] },
-            "description": "Set deleted_at (soft delete). Hard delete dijalankan cron job setelah 24 jam sesuai kebijakan Disposal SRS."
+            "description": "Soft delete (deleted_at diisi). SEMUA session termasuk yang sedang lu pakai langsung logout — beda dari Change Password yang mengecualikan session saat ini."
           }
         }
       ]
@@ -219,7 +208,7 @@
               "raw": "{\n  \"service_name\": \"CORETAX\"\n}",
               "options": { "raw": { "language": "json" } }
             },
-            "description": "service_name enum: CORETAX, BPJS, SATUSEHAT, OSS, SAMSAT, PLN, PDAM, ETLE, MPASPOR."
+            "description": "service_name enum: CORETAX, BPJS, SATUSEHAT, OSS, SAMSAT, PLN, PDAM, ETLE, MPASPOR. Wajib GRANTED sebelum Dashboard bisa sync service ini."
           }
         },
         {
@@ -244,14 +233,15 @@
           "request": {
             "method": "GET",
             "url": { "raw": "{{baseUrl}}/dashboard", "host": ["{{baseUrl}}"], "path": ["dashboard"] },
-            "description": "raw_data TIDAK di-expose default. Response mengembalikan field yang dipakai UI saja (service_name, status, last_synced_at). Bentuk akhir/shaping response menyesuaikan desain frontend."
+            "description": "Flat array response, bukan {data, meta}. Setiap item: { service_name, status, last_synced_at }. Jika consent untuk suatu service belum GRANTED, item itu tetap muncul dengan indikator consent_required, tidak membuat seluruh request gagal (graceful degradation)."
           }
         },
         {
           "name": "Refresh Dashboard (Manual Sync)",
           "request": {
             "method": "POST",
-            "url": { "raw": "{{baseUrl}}/dashboard/refresh", "host": ["{{baseUrl}}"], "path": ["dashboard", "refresh"] }
+            "url": { "raw": "{{baseUrl}}/dashboard/refresh", "host": ["{{baseUrl}}"], "path": ["dashboard", "refresh"] },
+            "description": "Setiap pemanggilan mock-external per service dibungkus try/catch terpisah — satu service gagal tidak menggagalkan service lain."
           }
         }
       ]
@@ -260,15 +250,21 @@
       "name": "5. Timeline & Deadlines",
       "item": [
         {
-          "name": "List Deadlines",
+          "name": "List Deadlines (Paginated)",
           "request": {
             "method": "GET",
             "url": {
-              "raw": "{{baseUrl}}/deadlines?status=ACTIVE",
+              "raw": "{{baseUrl}}/deadlines?status=ACTIVE&page=1&limit=20&sort=due_date",
               "host": ["{{baseUrl}}"],
               "path": ["deadlines"],
-              "query": [{ "key": "status", "value": "ACTIVE", "description": "optional: ACTIVE | WARNING | EXPIRED, dihitung backend dari due_date, bukan kolom tersimpan" }]
-            }
+              "query": [
+                { "key": "status", "value": "ACTIVE", "description": "optional: ACTIVE | WARNING | EXPIRED, dihitung dari due_date via deadlines_with_status view" },
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "20" },
+                { "key": "sort", "value": "due_date" }
+              ]
+            },
+            "description": "PAGINATED — response format { data: [...], meta: { total, page, limit } }."
           }
         },
         {
@@ -276,11 +272,11 @@
           "request": {
             "method": "GET",
             "url": {
-              "raw": "{{baseUrl}}/deadlines/:deadlineId",
+              "raw": "{{baseUrl}}/deadlines/{{deadlineId}}",
               "host": ["{{baseUrl}}"],
-              "path": ["deadlines", ":deadlineId"],
-              "variable": [{ "key": "deadlineId", "value": "" }]
-            }
+              "path": ["deadlines", "{{deadlineId}}"]
+            },
+            "description": "Flat object response (bukan paginated, ini single resource)."
           }
         }
       ]
@@ -298,7 +294,7 @@
               "path": ["notifications"],
               "query": [{ "key": "unread", "value": "true" }]
             },
-            "description": "Response: array of { id, title, type, message, sent_at, read_at }. Read-only, tidak ada CRUD selain mark as read."
+            "description": "Flat array response: [{ id, title, type, message, sent_at, read_at }]. Notification dibuat sistem (termasuk Smart Reminder H-30/H-7/H-1), tidak ada endpoint create/delete dari client."
           }
         },
         {
@@ -306,10 +302,9 @@
           "request": {
             "method": "PATCH",
             "url": {
-              "raw": "{{baseUrl}}/notifications/:notificationId/read",
+              "raw": "{{baseUrl}}/notifications/{{notificationId}}/read",
               "host": ["{{baseUrl}}"],
-              "path": ["notifications", ":notificationId", "read"],
-              "variable": [{ "key": "notificationId", "value": "" }]
+              "path": ["notifications", "{{notificationId}}", "read"]
             }
           }
         }
@@ -328,6 +323,20 @@
         },
         {
           "name": "Select Life Event",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200 || pm.response.code === 201) {",
+                  "    const body = pm.response.json();",
+                  "    if (body.id) pm.collectionVariables.set(\"selectionId\", body.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
             "method": "POST",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
@@ -337,7 +346,7 @@
               "raw": "{\n  \"life_event_id\": \"<uuid dari life_events>\"\n}",
               "options": { "raw": { "language": "json" } }
             },
-            "description": "Backend copy dari life_event_templates (termasuk display_order) ke checklist_items untuk user ini."
+            "description": "Checklist di-generate otomatis dari life_event_templates, termasuk display_order-nya. selectionId dari response otomatis tersimpan ke variable."
           }
         },
         {
@@ -356,7 +365,7 @@
               "host": ["{{baseUrl}}"],
               "path": ["life-events", "selections", "{{selectionId}}", "checklist"]
             },
-            "description": "Response terurut berdasarkan display_order."
+            "description": "Response terurut berdasarkan display_order, termasuk progress (completed vs total)."
           }
         },
         {
@@ -365,10 +374,9 @@
             "method": "PATCH",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
             "url": {
-              "raw": "{{baseUrl}}/checklist-items/:itemId",
+              "raw": "{{baseUrl}}/checklist-items/{{checklistItemId}}",
               "host": ["{{baseUrl}}"],
-              "path": ["checklist-items", ":itemId"],
-              "variable": [{ "key": "itemId", "value": "" }]
+              "path": ["checklist-items", "{{checklistItemId}}"]
             },
             "body": {
               "mode": "raw",
@@ -384,6 +392,20 @@
       "item": [
         {
           "name": "Upload Document",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200 || pm.response.code === 201) {",
+                  "    const body = pm.response.json();",
+                  "    if (body.id) pm.collectionVariables.set(\"documentId\", body.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
             "method": "POST",
             "url": { "raw": "{{baseUrl}}/documents", "host": ["{{baseUrl}}"], "path": ["documents"] },
@@ -395,7 +417,7 @@
                 { "key": "expiry_date", "type": "text", "value": "2030-01-01" }
               ]
             },
-            "description": "File dienkripsi backend sebelum disimpan ke S3. Backend juga menyimpan mime_type dan file_size dari file yang diupload (divalidasi, jangan percaya field dari client)."
+            "description": "mime_type divalidasi dari magic bytes file (bukan cuma header dari client). File dienkripsi AES-256-GCM sebelum disimpan, memakai DOCUMENT_ENCRYPTION_KEY (terpisah dari NIK_ENCRYPTION_KEY). Max 10MB."
           }
         },
         {
@@ -403,11 +425,28 @@
           "request": {
             "method": "GET",
             "url": { "raw": "{{baseUrl}}/documents", "host": ["{{baseUrl}}"], "path": ["documents"] },
-            "description": "Response: metadata saja (id, document_type, original_filename, mime_type, file_size, expiry_date, uploaded_at). encrypted_url tidak pernah di-expose langsung."
+            "description": "Flat array. Response: { id, document_type, original_filename, mime_type, file_size, expiry_date, uploaded_at, last_verified_at }. encrypted_url dan storage_key tidak pernah ikut."
           }
         },
         {
           "name": "Verify Identity & Get Preview URL",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200 || pm.response.code === 201) {",
+                  "    const body = pm.response.json();",
+                  "    if (body.preview_url) {",
+                  "        const token = body.preview_url.split('/').pop();",
+                  "        pm.collectionVariables.set(\"previewToken\", token);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
             "method": "POST",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
@@ -421,7 +460,20 @@
               "raw": "{\n  \"password\": \"Password123!\"\n}",
               "options": { "raw": { "language": "json" } }
             },
-            "description": "Re-auth wajib. Response langsung berisi signed URL: { previewUrl, expiresIn }. Tidak ada endpoint /preview terpisah."
+            "description": "Re-auth pakai password wajib. Response: { preview_url, expires_in }. Token di dalam preview_url terikat ke documentId ini secara spesifik — tidak bisa dipakai untuk dokumen lain, dan hanya berlaku 5 menit."
+          }
+        },
+        {
+          "name": "Get Document Preview (Signed URL)",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/documents/preview/{{previewToken}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["documents", "preview", "{{previewToken}}"]
+            },
+            "description": "PUBLIC route (tidak pakai Bearer token) — otorisasinya dari token signed itu sendiri, bukan JWT biasa. Frontend cukup buka preview_url ini langsung (misal di tab baru atau <img>/<iframe> src), tidak perlu attach Authorization header. Stream file yang sudah didekripsi, dengan Content-Type sesuai mime_type asli."
           }
         },
         {
@@ -441,7 +493,7 @@
       "name": "9. Admin",
       "item": [
         {
-          "name": "List All Users",
+          "name": "List All Users (Paginated)",
           "request": {
             "method": "GET",
             "url": {
@@ -454,7 +506,7 @@
                 { "key": "search", "value": "", "disabled": true }
               ]
             },
-            "description": "Khusus role ADMINISTRATOR. Response: paginated list user (tanpa nik_encrypted, password_hash)."
+            "description": "Khusus role ADMINISTRATOR. PAGINATED — { data: [...], meta: { total, page, limit } }. search mencari di email, full_name, phone_number."
           }
         },
         {
@@ -465,7 +517,8 @@
               "raw": "{{baseUrl}}/admin/users/{{adminUserId}}",
               "host": ["{{baseUrl}}"],
               "path": ["admin", "users", "{{adminUserId}}"]
-            }
+            },
+            "description": "Flat object (bukan paginated, single resource)."
           }
         },
         {
@@ -483,23 +536,26 @@
               "raw": "{\n  \"is_active\": false\n}",
               "options": { "raw": { "language": "json" } }
             },
-            "description": "Suspend/aktifkan akun user. Idealnya juga otomatis revoke semua refresh_tokens user tsb kalau is_active diset false."
+            "description": "Suspend (is_active=false) otomatis revoke semua refresh_tokens dan nonaktifkan semua user_sessions milik user tsb tanpa pengecualian, plus mencatat audit log (ADMIN_SUSPEND_USER:<targetUserId> atau ADMIN_ACTIVATE_USER:<targetUserId>)."
           }
         },
         {
-          "name": "List Audit Logs",
+          "name": "List Audit Logs (Paginated)",
           "request": {
             "method": "GET",
             "url": {
-              "raw": "{{baseUrl}}/admin/audit-logs?from=2026-07-01&to=2026-07-27",
+              "raw": "{{baseUrl}}/admin/audit-logs?from=2026-07-01&to=2026-08-01&page=1&limit=20",
               "host": ["{{baseUrl}}"],
               "path": ["admin", "audit-logs"],
               "query": [
                 { "key": "from", "value": "2026-07-01" },
-                { "key": "to", "value": "2026-07-27" },
+                { "key": "to", "value": "2026-08-01" },
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "20" },
                 { "key": "user_id", "value": "", "disabled": true }
               ]
-            }
+            },
+            "description": "PAGINATED — { data: [...], meta: { total, page, limit } }. Immutable log, tidak ada endpoint update/delete."
           }
         }
       ]
