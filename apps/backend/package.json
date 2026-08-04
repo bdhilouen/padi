@@ -21,7 +21,9 @@
     "migration:generate": "nest build && typeorm migration:generate -d dist/database/data-source.js",
     "migration:run": "nest build && typeorm migration:run -d dist/database/data-source.js",
     "migration:revert": "nest build && typeorm migration:revert -d dist/database/data-source.js",
-    "migration:show": "nest build && typeorm migration:show -d dist/database/data-source.js"
+    "migration:show": "nest build && typeorm migration:show -d dist/database/data-source.js",
+    "seed:admin": "ts-node -r tsconfig-paths/register src/database/seeds/admin.seed.ts",
+    "seed:demo": "ts-node -r tsconfig-paths/register src/database/seeds/demo.seed.ts"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
