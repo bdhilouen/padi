@@ -8,6 +8,7 @@ import { Deadline } from './entities/deadline.entity.js';
   imports: [TypeOrmModule.forFeature([Deadline])],
   controllers: [DeadlineController],
   providers: [DeadlineService],
+  exports: [DeadlineService],
 })
 export class DeadlineModule {}
 

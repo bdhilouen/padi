@@ -84,7 +84,11 @@ async function seedDemoData() {
   const selectionRepo = AppDataSource.getRepository(LifeEventSelection);
   const checklistRepo = AppDataSource.getRepository(ChecklistItem);
 
-  const seededSummary: Array<{ email: string; password: string; name: string }> = [];
+  const seededSummary: Array<{
+    email: string;
+    password: string;
+    name: string;
+  }> = [];
 
   // Compute dates for deadlines (ACTIVE = future > 30d, WARNING = future <= 30d, EXPIRED = past)
   const today = new Date();
@@ -118,7 +122,9 @@ async function seedDemoData() {
       continue;
     }
 
-    console.log(`Creating demo user: ${demoConfig.email} (${demoConfig.fullName})...`);
+    console.log(
+      `Creating demo user: ${demoConfig.email} (${demoConfig.fullName})...`,
+    );
 
     const passwordHash = await cryptoService.hashPassword(demoConfig.password);
     const nikHash = cryptoService.hashNik(demoConfig.nik);
@@ -156,7 +162,10 @@ async function seedDemoData() {
       userId = result[0].id;
     } catch (err) {
       await queryRunner.rollbackTransaction();
-      console.error(`[DEMO SEED ERROR] Failed to create user ${demoConfig.email}:`, err);
+      console.error(
+        `[DEMO SEED ERROR] Failed to create user ${demoConfig.email}:`,
+        err,
+      );
       continue;
     } finally {
       await queryRunner.release();
@@ -166,11 +175,34 @@ async function seedDemoData() {
     if (demoConfig.email === 'user1@padi.test') {
       // Consent Records
       await consentRepo.save([
-        consentRepo.create({ userId, serviceName: ServiceNameEnum.CORETAX, status: ConsentStatusEnum.GRANTED, grantedAt: new Date() }),
-        consentRepo.create({ userId, serviceName: ServiceNameEnum.BPJS, status: ConsentStatusEnum.GRANTED, grantedAt: new Date() }),
-        consentRepo.create({ userId, serviceName: ServiceNameEnum.SAMSAT, status: ConsentStatusEnum.GRANTED, grantedAt: new Date() }),
-        consentRepo.create({ userId, serviceName: ServiceNameEnum.SATUSEHAT, status: ConsentStatusEnum.PENDING }),
-        consentRepo.create({ userId, serviceName: ServiceNameEnum.PLN, status: ConsentStatusEnum.PENDING }),
+        consentRepo.create({
+          userId,
+          serviceName: ServiceNameEnum.CORETAX,
+          status: ConsentStatusEnum.GRANTED,
+          grantedAt: new Date(),
+        }),
+        consentRepo.create({
+          userId,
+          serviceName: ServiceNameEnum.BPJS,
+          status: ConsentStatusEnum.GRANTED,
+          grantedAt: new Date(),
+        }),
+        consentRepo.create({
+          userId,
+          serviceName: ServiceNameEnum.SAMSAT,
+          status: ConsentStatusEnum.GRANTED,
+          grantedAt: new Date(),
+        }),
+        consentRepo.create({
+          userId,
+          serviceName: ServiceNameEnum.SATUSEHAT,
+          status: ConsentStatusEnum.PENDING,
+        }),
+        consentRepo.create({
+          userId,
+          serviceName: ServiceNameEnum.PLN,
+          status: ConsentStatusEnum.PENDING,
+        }),
       ]);
 
       // Service Status (ACTIVE, WARNING, EXPIRED examples)
@@ -179,24 +211,39 @@ async function seedDemoData() {
           userId,
           serviceName: ServiceNameEnum.CORETAX,
           status: StatusEnum.ACTIVE,
-          rawData: { npwp: '98.765.432.1-012.000', tax_year: 2025, status: 'COMPLIANT', last_filing: '2025-03-15' },
+          rawData: {
+            npwp: '98.765.432.1-012.000',
+            tax_year: 2025,
+            status: 'COMPLIANT',
+            last_filing: '2025-03-15',
+          },
         }),
         serviceStatusRepo.create({
           userId,
           serviceName: ServiceNameEnum.BPJS,
           status: StatusEnum.ACTIVE,
-          rawData: { bpjs_number: '0001234567890', class: 'KLAS_1', status: 'ACTIVE', faskes: 'Klinik Sehat Bersama' },
+          rawData: {
+            bpjs_number: '0001234567890',
+            class: 'KLAS_1',
+            status: 'ACTIVE',
+            faskes: 'Klinik Sehat Bersama',
+          },
         }),
         serviceStatusRepo.create({
           userId,
           serviceName: ServiceNameEnum.SAMSAT,
           status: StatusEnum.WARNING,
-          rawData: { plate_number: 'B 1234 ABC', vehicle_type: 'MOTORCYCLE', tax_due_date: formatDateString(futureWarningDate), amount_due: 350000 },
+          rawData: {
+            plate_number: 'B 1234 ABC',
+            vehicle_type: 'MOTORCYCLE',
+            tax_due_date: formatDateString(futureWarningDate),
+            amount_due: 350000,
+          },
         }),
       ]);
 
       // Deadlines (ACTIVE, WARNING, EXPIRED ranges)
-      const d1 = await deadlineRepo.save(
+      await deadlineRepo.save(
         deadlineRepo.create({
           userId,
           serviceName: ServiceNameEnum.CORETAX,
@@ -234,7 +281,8 @@ async function seedDemoData() {
           title: 'Peringatan Jatuh Tempo SAMSAT',
           type: NotificationTypeEnum.SMART_REMINDER,
           channel: NotificationChannelEnum.IN_APP,
-          message: 'Pajak Kendaraan Bermotor B 1234 ABC akan jatuh tempo dalam 5 hari.',
+          message:
+            'Pajak Kendaraan Bermotor B 1234 ABC akan jatuh tempo dalam 5 hari.',
           sentAt: new Date(Date.now() - 2 * 86400000),
           readAt: new Date(Date.now() - 1 * 86400000),
         }),
@@ -244,7 +292,8 @@ async function seedDemoData() {
           title: 'Peringatan Jatuh Tempo BPJS',
           type: NotificationTypeEnum.SMART_REMINDER,
           channel: NotificationChannelEnum.IN_APP,
-          message: 'Iuran BPJS Kesehatan Bulan Lalu telah melewati jatuh tempo!',
+          message:
+            'Iuran BPJS Kesehatan Bulan Lalu telah melewati jatuh tempo!',
           sentAt: new Date(Date.now() - 1 * 86400000),
           readAt: null,
         }),
@@ -254,14 +303,17 @@ async function seedDemoData() {
           title: 'Selamat Datang di PADI',
           type: NotificationTypeEnum.GENERAL,
           channel: NotificationChannelEnum.IN_APP,
-          message: 'Selamat datang di PADI (Portal Administrasi Indonesia). Hubungkan layanan Anda untuk memulai.',
+          message:
+            'Selamat datang di PADI (Portal Administrasi Indonesia). Hubungkan layanan Anda untuk memulai.',
           sentAt: new Date(Date.now() - 3 * 86400000),
           readAt: null,
         }),
       ]);
 
       // Life Event Selection + Partially Completed Checklist
-      const marriedEvent = await lifeEventRepo.findOne({ where: { code: 'MENIKAH' } });
+      const marriedEvent = await lifeEventRepo.findOne({
+        where: { code: 'MENIKAH' },
+      });
       if (marriedEvent) {
         const selection = await selectionRepo.save(
           selectionRepo.create({ userId, lifeEventId: marriedEvent.id }),
@@ -297,10 +349,29 @@ async function seedDemoData() {
     } else if (demoConfig.email === 'user2@padi.test') {
       // Consent Records
       await consentRepo.save([
-        consentRepo.create({ userId, serviceName: ServiceNameEnum.BPJS, status: ConsentStatusEnum.GRANTED, grantedAt: new Date() }),
-        consentRepo.create({ userId, serviceName: ServiceNameEnum.SATUSEHAT, status: ConsentStatusEnum.GRANTED, grantedAt: new Date() }),
-        consentRepo.create({ userId, serviceName: ServiceNameEnum.CORETAX, status: ConsentStatusEnum.PENDING }),
-        consentRepo.create({ userId, serviceName: ServiceNameEnum.SAMSAT, status: ConsentStatusEnum.REVOKED, revokedAt: new Date() }),
+        consentRepo.create({
+          userId,
+          serviceName: ServiceNameEnum.BPJS,
+          status: ConsentStatusEnum.GRANTED,
+          grantedAt: new Date(),
+        }),
+        consentRepo.create({
+          userId,
+          serviceName: ServiceNameEnum.SATUSEHAT,
+          status: ConsentStatusEnum.GRANTED,
+          grantedAt: new Date(),
+        }),
+        consentRepo.create({
+          userId,
+          serviceName: ServiceNameEnum.CORETAX,
+          status: ConsentStatusEnum.PENDING,
+        }),
+        consentRepo.create({
+          userId,
+          serviceName: ServiceNameEnum.SAMSAT,
+          status: ConsentStatusEnum.REVOKED,
+          revokedAt: new Date(),
+        }),
       ]);
 
       // Service Status
@@ -309,13 +380,22 @@ async function seedDemoData() {
           userId,
           serviceName: ServiceNameEnum.BPJS,
           status: StatusEnum.ACTIVE,
-          rawData: { bpjs_number: '0009876543210', class: 'KLAS_2', status: 'ACTIVE', faskes: 'Puskesmas Tebet' },
+          rawData: {
+            bpjs_number: '0009876543210',
+            class: 'KLAS_2',
+            status: 'ACTIVE',
+            faskes: 'Puskesmas Tebet',
+          },
         }),
         serviceStatusRepo.create({
           userId,
           serviceName: ServiceNameEnum.SATUSEHAT,
           status: StatusEnum.EXPIRED,
-          rawData: { vaccine_doses: 3, last_dose_date: '2022-11-10', status: 'BOOSTER_DUE' },
+          rawData: {
+            vaccine_doses: 3,
+            last_dose_date: '2022-11-10',
+            status: 'BOOSTER_DUE',
+          },
         }),
       ]);
 
@@ -348,7 +428,8 @@ async function seedDemoData() {
           title: 'Pengingat SATUSEHAT',
           type: NotificationTypeEnum.SMART_REMINDER,
           channel: NotificationChannelEnum.IN_APP,
-          message: 'Jadwal Pemeriksaan Kesehatan Berkala mendekati batas waktu.',
+          message:
+            'Jadwal Pemeriksaan Kesehatan Berkala mendekati batas waktu.',
           sentAt: new Date(Date.now() - 86400000),
           readAt: new Date(Date.now() - 43200000),
         }),
@@ -358,7 +439,8 @@ async function seedDemoData() {
           title: 'Integrasi Layanan Baru',
           type: NotificationTypeEnum.GENERAL,
           channel: NotificationChannelEnum.IN_APP,
-          message: 'Sistem PADI telah memperbarui integrasi layanan BPJS dan SATUSEHAT.',
+          message:
+            'Sistem PADI telah memperbarui integrasi layanan BPJS dan SATUSEHAT.',
           sentAt: new Date(Date.now() - 2 * 86400000),
           readAt: null,
         }),
@@ -366,10 +448,28 @@ async function seedDemoData() {
     } else if (demoConfig.email === 'user3@padi.test') {
       // Consent Records
       await consentRepo.save([
-        consentRepo.create({ userId, serviceName: ServiceNameEnum.CORETAX, status: ConsentStatusEnum.PENDING }),
-        consentRepo.create({ userId, serviceName: ServiceNameEnum.BPJS, status: ConsentStatusEnum.PENDING }),
-        consentRepo.create({ userId, serviceName: ServiceNameEnum.PLN, status: ConsentStatusEnum.GRANTED, grantedAt: new Date() }),
-        consentRepo.create({ userId, serviceName: ServiceNameEnum.PDAM, status: ConsentStatusEnum.GRANTED, grantedAt: new Date() }),
+        consentRepo.create({
+          userId,
+          serviceName: ServiceNameEnum.CORETAX,
+          status: ConsentStatusEnum.PENDING,
+        }),
+        consentRepo.create({
+          userId,
+          serviceName: ServiceNameEnum.BPJS,
+          status: ConsentStatusEnum.PENDING,
+        }),
+        consentRepo.create({
+          userId,
+          serviceName: ServiceNameEnum.PLN,
+          status: ConsentStatusEnum.GRANTED,
+          grantedAt: new Date(),
+        }),
+        consentRepo.create({
+          userId,
+          serviceName: ServiceNameEnum.PDAM,
+          status: ConsentStatusEnum.GRANTED,
+          grantedAt: new Date(),
+        }),
       ]);
 
       // Service Status
@@ -378,13 +478,22 @@ async function seedDemoData() {
           userId,
           serviceName: ServiceNameEnum.PLN,
           status: StatusEnum.ACTIVE,
-          rawData: { meter_number: '541234567890', tariff: 'R1M/900VA', status: 'PAID' },
+          rawData: {
+            meter_number: '541234567890',
+            tariff: 'R1M/900VA',
+            status: 'PAID',
+          },
         }),
         serviceStatusRepo.create({
           userId,
           serviceName: ServiceNameEnum.PDAM,
           status: StatusEnum.WARNING,
-          rawData: { customer_id: '10098765', usage_m3: 24, amount_due: 125000, due_date: formatDateString(futureWarningDate) },
+          rawData: {
+            customer_id: '10098765',
+            usage_m3: 24,
+            amount_due: 125000,
+            due_date: formatDateString(futureWarningDate),
+          },
         }),
       ]);
 
@@ -417,7 +526,8 @@ async function seedDemoData() {
           title: 'Tagihan PDAM Mendekati Jatuh Tempo',
           type: NotificationTypeEnum.SMART_REMINDER,
           channel: NotificationChannelEnum.IN_APP,
-          message: 'Tagihan Air PDAM Bulan Ini mendekati jatuh tempo. Lakukan pembayaran tepat waktu.',
+          message:
+            'Tagihan Air PDAM Bulan Ini mendekati jatuh tempo. Lakukan pembayaran tepat waktu.',
           sentAt: new Date(Date.now() - 4 * 3600000),
           readAt: null,
         }),
@@ -431,7 +541,9 @@ async function seedDemoData() {
     });
   }
 
-  console.log('\n=============================================================');
+  console.log(
+    '\n=============================================================',
+  );
   console.log('            DEMO DATA SEEDING COMPLETE                       ');
   console.log('=============================================================');
   console.log('Share these test accounts with the frontend team:\n');
@@ -440,12 +552,17 @@ async function seedDemoData() {
     console.log(`  Email:    ${user.email}`);
     console.log(`  Password: ${user.password}\n`);
   });
-  console.log('=============================================================\n');
+  console.log(
+    '=============================================================\n',
+  );
 
   await AppDataSource.destroy();
 }
 
 seedDemoData().catch((err) => {
-  console.error('[DEMO SEED ERROR] Unexpected error during demo seed execution:', err);
+  console.error(
+    '[DEMO SEED ERROR] Unexpected error during demo seed execution:',
+    err,
+  );
   process.exit(1);
 });
