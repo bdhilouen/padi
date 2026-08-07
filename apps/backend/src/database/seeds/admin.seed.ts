@@ -89,10 +89,7 @@ async function seedAdmin() {
     );
   } catch (error) {
     await queryRunner.rollbackTransaction();
-    console.error(
-      '[SEED ERROR] Failed to seed administrator user:',
-      error,
-    );
+    console.error('[SEED ERROR] Failed to seed administrator user:', error);
     process.exitCode = 1;
   } finally {
     await queryRunner.release();
@@ -101,6 +98,9 @@ async function seedAdmin() {
 }
 
 seedAdmin().catch((err) => {
-  console.error('[SEED ERROR] Unexpected error during admin seed execution:', err);
+  console.error(
+    '[SEED ERROR] Unexpected error during admin seed execution:',
+    err,
+  );
   process.exit(1);
 });
