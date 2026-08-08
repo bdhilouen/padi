@@ -23,18 +23,38 @@ import { UsersModule } from './modules/users/users.module.js';
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (config: ConfigService) => ({
-        type: 'postgres',
-        host: config.get('DB_HOST', 'localhost'),
-        port: config.get<number>('DB_PORT', 5432),
-        username: config.get('DB_USERNAME'),
-        password: config.get('DB_PASSWORD'),
-        database: config.get('DB_NAME'),
-        // autoLoadEntities picks up every entity registered via TypeOrmModule.forFeature()
-        autoLoadEntities: true,
-        // synchronize is disabled — schema is managed by migrations
-        synchronize: false,
-      }),
+      useFactory: (config: ConfigService) => {
+        const databaseUrl = config.get<string>('DATABASE_URL');
+
+        // If DATABASE_URL is set (e.g. Supabase session pooler), use it directly.
+        // Otherwise fall back to individual DB_* vars for local development.
+        if (databaseUrl) {
+          return {
+            type: 'postgres',
+            url: databaseUrl,
+            ssl: {
+              rejectUnauthorized: false, // Required for Supabase / Cloud DB
+            },
+            // autoLoadEntities picks up every entity registered via TypeOrmModule.forFeature()
+            autoLoadEntities: true,
+            // synchronize is disabled — schema is managed by migrations
+            synchronize: false,
+          };
+        }
+
+        return {
+          type: 'postgres',
+          host: config.get('DB_HOST', 'localhost'),
+          port: config.get<number>('DB_PORT', 5432),
+          username: config.get('DB_USERNAME'),
+          password: config.get('DB_PASSWORD'),
+          database: config.get('DB_NAME'),
+          // autoLoadEntities picks up every entity registered via TypeOrmModule.forFeature()
+          autoLoadEntities: true,
+          // synchronize is disabled — schema is managed by migrations
+          synchronize: false,
+        };
+      },
     }),
 
     AuthModule,

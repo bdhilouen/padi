@@ -14,18 +14,32 @@ import { config } from 'dotenv';
 
 config();
 
-export const AppDataSource = new DataSource({
-  type: 'postgres',
-  host: process.env.DB_HOST ?? 'localhost',
-  port: parseInt(process.env.DB_PORT ?? '5432', 10),
-  username: process.env.DB_USERNAME,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
+// Cek apakah ada DATABASE_URL, kalau tidak ada baru fallback ke variabel terpisah
+const isUsingUrl = Boolean(process.env.DATABASE_URL);
 
-  // Point at compiled JS in dist/ so the CLI works after `nest build`
-  entities: ['dist/modules/**/entities/*.entity.js'],
-  migrations: ['dist/database/migrations/*.js'],
-
-  synchronize: false,
-  logging: true,
-});
+export const AppDataSource = new DataSource(
+  isUsingUrl
+    ? {
+        type: 'postgres',
+        url: process.env.DATABASE_URL,
+        ssl: {
+          rejectUnauthorized: false, // Wajib buat Supabase / Cloud DB
+        },
+        entities: ['dist/modules/**/entities/*.entity.js'],
+        migrations: ['dist/database/migrations/*.js'],
+        synchronize: false,
+        logging: true,
+      }
+    : {
+        type: 'postgres',
+        host: process.env.DB_HOST ?? 'localhost',
+        port: parseInt(process.env.DB_PORT ?? '5432', 10),
+        username: process.env.DB_USERNAME,
+        password: process.env.DB_PASSWORD,
+        database: process.env.DB_NAME,
+        entities: ['dist/modules/**/entities/*.entity.js'],
+        migrations: ['dist/database/migrations/*.js'],
+        synchronize: false,
+        logging: true,
+      },
+);
