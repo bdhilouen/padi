@@ -185,8 +185,6 @@ export class DocumentsService {
     return {
       preview_url: previewUrl,
       expires_in: expiresInSeconds,
-      previewUrl,
-      expiresIn: expiresInSeconds,
     };
   }
 
