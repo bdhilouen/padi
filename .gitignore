@@ -148,4 +148,21 @@ vite.config.ts.timestamp-*
 docs/precord.md
 
 # Uploaded files
-uploads/
+uploads/
+
+# Seed scripts (berisi data lokal / koneksi DB)
+seed.js
+seed-railway.mjs
+
+# OS artifacts
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor artifacts
+.idea/
+*.swp
+*.swo
+
+# Vercel
+.vercel
