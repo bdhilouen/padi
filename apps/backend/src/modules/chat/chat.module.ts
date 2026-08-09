@@ -8,6 +8,7 @@ import { ChatMessage } from './entities/chat-message.entity.js';
 import { UsersModule } from '../users/users.module.js';
 import { DashboardModule } from '../dashboard/dashboard.module.js';
 import { TimelineReminderModule } from '../timeline-reminder/timeline-reminder.module.js';
+import { DocumentVaultModule } from '../document-vault/document-vault.module.js';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { TimelineReminderModule } from '../timeline-reminder/timeline-reminder.m
     UsersModule,
     DashboardModule,
     TimelineReminderModule,
+    DocumentVaultModule,
   ],
   controllers: [ChatController],
   providers: [ChatService],
