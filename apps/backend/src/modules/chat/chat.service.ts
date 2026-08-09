@@ -8,6 +8,7 @@ import { ChatMessage } from './entities/chat-message.entity.js';
 import { UsersService } from '../users/users.service.js';
 import { DashboardService } from '../dashboard/dashboard.service.js';
 import { DeadlineService } from '../timeline-reminder/deadline.service.js';
+import { DocumentsService } from '../document-vault/documents.service.js';
 import { StatusEnum } from '../../common/enums/index.js';
 
 @Injectable()
@@ -24,6 +25,7 @@ export class ChatService {
     private readonly usersService: UsersService,
     private readonly dashboardService: DashboardService,
     private readonly deadlineService: DeadlineService,
+    private readonly documentsService: DocumentsService,
   ) {}
 
   async createSession(userId: string, title?: string) {
@@ -93,18 +95,29 @@ export class ChatService {
 
     try {
       const response = await this.callLangflow(message, sessionId, userContext);
+      // Confirmed response path from live test:
+      // outputs[0].outputs[0].outputs.message.message
       const responseData = response.data as {
         outputs?: {
-          outputs?: { results?: { message?: { data?: { text?: string } } } }[];
+          outputs?: {
+            outputs?: {
+              message?: {
+                message?: string;
+                type?: string;
+              };
+            };
+          }[];
         }[];
       };
       const aiText =
-        responseData?.outputs?.[0]?.outputs?.[0]?.results?.message?.data?.text;
+        responseData?.outputs?.[0]?.outputs?.[0]?.outputs?.message?.message;
 
-      if (typeof aiText === 'string') {
+      if (typeof aiText === 'string' && aiText.trim().length > 0) {
         replyText = aiText;
       } else {
-        this.logger.warn('Langflow response shape mismatch');
+        this.logger.warn(
+          'Langflow response shape mismatch or empty reply — using fallback message',
+        );
       }
     } catch (error) {
       this.logger.error('Error calling Langflow', error);
@@ -153,13 +166,27 @@ export class ChatService {
       let active = 0,
         warning = 0,
         expired = 0;
+      const warningItems: string[] = [];
+      const expiredItems: string[] = [];
+
       for (const item of dashboard) {
         if (item.status === StatusEnum.ACTIVE) active++;
-        else if (item.status === StatusEnum.WARNING) warning++;
-        else if (item.status === StatusEnum.EXPIRED) expired++;
+        else if (item.status === StatusEnum.WARNING) {
+          warning++;
+          warningItems.push(item.service_name);
+        } else if (item.status === StatusEnum.EXPIRED) {
+          expired++;
+          expiredItems.push(item.service_name);
+        }
       }
+
+      const warningStr =
+        warningItems.length > 0 ? ` (Layanan: ${warningItems.join(', ')})` : '';
+      const expiredStr =
+        expiredItems.length > 0 ? ` (Layanan: ${expiredItems.join(', ')})` : '';
+
       lines.push(
-        `Status layanan: ${active} aktif, ${warning} peringatan, ${expired} kedaluwarsa`,
+        `Status layanan: ${active} aktif, ${warning} peringatan${warningStr}, ${expired} kedaluwarsa${expiredStr}`,
       );
     } catch (error) {
       this.logger.warn(
@@ -170,14 +197,29 @@ export class ChatService {
     try {
       const deadlines = await this.deadlineService.listDeadlines(userId, {});
       if (deadlines?.data?.length > 0) {
-        const nearest = deadlines.data[0];
-        lines.push(
-          `Tagihan/Deadline terdekat: ${nearest.title} - ${nearest.due_date}`,
-        );
+        const soonest = deadlines.data
+          .slice(0, 3)
+          .map((d) => `${d.title} (${d.due_date})`)
+          .join(', ');
+        lines.push(`Tagihan/Deadline terdekat: ${soonest}`);
       }
     } catch (error) {
       this.logger.warn(
         `Failed to fetch deadlines for context: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
+
+    try {
+      const docs = await this.documentsService.listMyDocuments(userId);
+      if (docs && docs.length > 0) {
+        const docNames = docs.map((d) => d.document_type).join(', ');
+        lines.push(`Dokumen tersimpan di akun: ${docNames}`);
+      } else {
+        lines.push(`Dokumen tersimpan di akun: Belum ada dokumen`);
+      }
+    } catch (error) {
+      this.logger.warn(
+        `Failed to fetch documents for context: ${error instanceof Error ? error.message : String(error)}`,
       );
     }
 
@@ -201,7 +243,7 @@ export class ChatService {
       output_type: 'chat',
       session_id: sessionId,
       tweaks: {
-        'TextInput-tVAkg': { input_value: userContext },
+        'TextInput-Hrc0u': { input_value: userContext },
       },
     };
 
