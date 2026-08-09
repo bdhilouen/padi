@@ -9,7 +9,7 @@ const nextConfig: NextConfig = {
   },
   async rewrites() {
     const backendUrl =
-      process.env.BACKEND_URL ?? "https://padi-api-cihuy.up.railway.app";
+      process.env.BACKEND_URL ?? "blabla";
     return [
       {
         source: "/api/v1/:path*",
