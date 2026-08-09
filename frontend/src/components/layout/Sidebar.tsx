@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
@@ -36,14 +37,10 @@ export function Sidebar() {
   return (
     <aside className="hidden lg:flex flex-col w-64 shrink-0 border-r border-border bg-sidebar h-screen sticky top-0">
       {/* Logo */}
-      <div className="px-6 py-5 border-b border-border">
-        <Link href={ROUTES.DASHBOARD} className="flex items-center gap-2.5">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-            <Shield className="h-4 w-4" />
-          </div>
-          <span className="font-display font-bold text-lg tracking-tight text-foreground">
-            CitizenHub
-          </span>
+      <div className="px-6 py-5 border-b border-border flex justify-center">
+        <Link href={ROUTES.DASHBOARD} className="flex items-center justify-center transition-opacity hover:opacity-80">
+          <Image src="/LogoPadi.webp" alt="Logo Padi" width={120} height={40} className="w-28 h-auto dark:hidden object-contain" priority />
+          <Image src="/LogoPadiWhite.png" alt="Logo Padi" width={120} height={40} className="w-28 h-auto hidden dark:block object-contain" priority />
         </Link>
       </div>
 
@@ -83,11 +80,11 @@ export function Sidebar() {
         <div className="flex items-center gap-3 px-3 mb-3">
           <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
             <span className="text-xs font-semibold text-primary">
-              {user?.name?.charAt(0) ?? "B"}
+              {user?.full_name?.charAt(0) ?? "U"}
             </span>
           </div>
           <div className="min-w-0">
-            <p className="text-sm font-medium text-foreground truncate">{user?.name ?? "Pengguna"}</p>
+            <p className="text-sm font-medium text-foreground truncate">{user?.full_name ?? "Pengguna"}</p>
             <p className="text-xs text-muted-foreground truncate">{user?.email ?? ""}</p>
           </div>
         </div>

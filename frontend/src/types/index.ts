@@ -6,12 +6,16 @@ export interface ServiceCard {
   icon: string;
   status: ServiceStatus;
   description: string;
-  dueDate?: string;
   lastUpdated?: string;
+  /** True jika user belum memberikan consent untuk service ini */
+  consentRequired?: boolean;
+  /** True jika sync ke external service gagal */
+  syncError?: boolean;
 }
 
 export interface TimelineItem {
   id: string;
+  serviceId: string;
   service: string;
   title: string;
   date: string;
@@ -34,26 +38,29 @@ export interface Document {
   size: string;
   uploadedAt: string;
   category: string;
+  mimeType?: string;
+  expiryDate?: string | null;
 }
 
 export interface LifeEvent {
   id: string;
+  code: string;
   title: string;
   description: string;
   icon: string;
-  steps: string[];
   category: string;
 }
 
+/** User profile dari GET /users/me — NIK tidak pernah dikembalikan backend */
 export interface User {
   id: string;
-  name: string;
-  nik: string;
   email: string;
-  phone: string;
-  address: string;
-  birthDate: string;
-  avatar?: string;
+  full_name: string;
+  phone_number: string | null;
+  role: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface NotificationSetting {
@@ -62,3 +69,4 @@ export interface NotificationSetting {
   description: string;
   enabled: boolean;
 }
+

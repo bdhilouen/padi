@@ -19,6 +19,9 @@ import { LandingNavbar } from "@/components/shared/LandingNavbar";
 import satusehatLogo from "@/assets/logoloop/satusehat.png";
 import coretaxLogo from "@/assets/logoloop/coretax.png";
 import signalLogo from "@/assets/logoloop/signal.png";
+import mpasporLogo from "@/assets/logoloop/mpaspor.png";
+import plnLogo from "@/assets/logoloop/plnmobile.png";
+
 
 export const metadata: Metadata = {
   title: "PADI — Portal Administrasi Digital Indonesia",
@@ -98,7 +101,7 @@ export default function HomePage() {
           aria-hidden
         >
           {/* STNK — behind, tilted left, arrives first */}
-          <div 
+          <div
             className="absolute -right-[200px] sm:-right-[300px] lg:-right-[400px] top-16 animate-slide-in-br"
             style={{ animationDelay: "800ms" }}
           >
@@ -118,7 +121,7 @@ export default function HomePage() {
           </div>
 
           {/* Passport — front, tilted right, arrives slightly after */}
-          <div 
+          <div
             className="absolute z-10 -right-[150px] sm:-right-[100px] lg:-right-[300px] top-48 animate-slide-in-br"
             style={{ animationDelay: "1000ms" }}
           >
@@ -139,7 +142,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── Services strip ── */}
       <section
         className="mx-auto max-w-6xl px-6 pt-12 pb-6 animate-slide-up"
         style={{ animationDelay: "500ms" }}
@@ -147,19 +149,30 @@ export default function HomePage() {
         <p className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400 text-center mb-5">
           Layanan
         </p>
-        <div className="relative flex overflow-hidden border-t border-slate-200 pt-8 pb-4 w-full group">
-          {/* Gradient edges for fading effect */}
-          <div className="absolute top-0 left-0 bottom-0 w-16 bg-gradient-to-r from-[#f5f6fa] to-transparent z-10 pointer-events-none" />
-          <div className="absolute top-0 right-0 bottom-0 w-16 bg-gradient-to-l from-[#f5f6fa] to-transparent z-10 pointer-events-none" />
+        <div className="relative flex overflow-hidden border-t border-slate-200 dark:border-white/10 pt-8 pb-4 w-full">
+          {/* Gradient fade edges */}
+          <div className="absolute top-0 left-0 bottom-0 w-20 bg-gradient-to-r from-[#f5f6fa] dark:from-background to-transparent z-10 pointer-events-none" />
+          <div className="absolute top-0 right-0 bottom-0 w-20 bg-gradient-to-l from-[#f5f6fa] dark:from-background to-transparent z-10 pointer-events-none" />
 
-          {/* Marquee Track */}
-          <div className="flex w-max animate-scroll-left items-center gap-48">
-            {/* Render 6 sets to guarantee filling ultra-wide screens, translating -50% shifts exactly 3 sets */}
-            {[...Array(6)].map((_, i) => (
-              <div key={i} className="flex gap-8 items-center">
-                <Image src={satusehatLogo} alt="SatuSehat" className="h-10 md:h-12 w-auto object-contain drop-shadow-sm transition-transform hover:scale-110" />
-                <Image src={coretaxLogo} alt="CoreTax" className="h-10 md:h-12 w-auto object-contain drop-shadow-sm transition-transform hover:scale-110" />
-                <Image src={signalLogo} alt="Signal" className="h-10 md:h-12 w-auto object-contain drop-shadow-sm transition-transform hover:scale-110" />
+          {/* Marquee: 4 copies (even number), translateX(-50%) stays seamless */}
+          <div className="flex w-max animate-scroll-left">
+            {[0, 1, 2, 3].map((copy) => (
+              <div key={copy} className="flex items-center">
+                <div className="w-36 flex items-center justify-center px-4">
+                  <Image src={satusehatLogo} alt="SatuSehat" className="h-10 md:h-12 w-auto max-w-[100px] object-contain opacity-75 hover:opacity-100 drop-shadow-sm transition-all hover:scale-105" />
+                </div>
+                <div className="w-36 flex items-center justify-center px-4">
+                  <Image src={coretaxLogo} alt="CoreTax" className="h-10 md:h-12 w-auto max-w-[100px] object-contain opacity-75 hover:opacity-100 drop-shadow-sm transition-all hover:scale-105" />
+                </div>
+                <div className="w-36 flex items-center justify-center px-4">
+                  <Image src={signalLogo} alt="Signal" className="h-10 md:h-12 w-auto max-w-[100px] object-contain opacity-75 hover:opacity-100 drop-shadow-sm transition-all hover:scale-105" />
+                </div>
+                <div className="w-36 flex items-center justify-center px-4">
+                  <Image src={plnLogo} alt="PLN Mobile" className="h-10 md:h-12 w-auto max-w-[100px] object-contain opacity-75 hover:opacity-100 drop-shadow-sm transition-all hover:scale-105 rounded-md" />
+                </div>
+                <div className="w-36 flex items-center justify-center px-4">
+                  <Image src={mpasporLogo} alt="MPaspor" className="h-10 md:h-12 w-auto max-w-[100px] object-contain opacity-75 hover:opacity-100 drop-shadow-sm transition-all hover:scale-105" />
+                </div>
               </div>
             ))}
           </div>
@@ -204,27 +217,27 @@ export default function HomePage() {
 
       {/* ── CTA ── */}
       <section
-        className="px-6 pb-24 animate-slide-up"
+        className="px-6 pb-24 animate-slide-up "
         style={{ animationDelay: "150ms" }}
       >
-        <div className="mx-auto max-w-3xl rounded-3xl bg-[#00254D] px-8 py-14 text-center shadow-2xl shadow-[#00254D]/30 relative overflow-hidden group">
+        <div className="mx-auto max-w-3xl rounded-3xl bg-[#00254D] px-8 py-14 text-center shadow-2xl shadow-[#00254D]/30 relative overflow-hidden group hover:scale-105 transition-transform duration-800 ease-in-out">
           {/* Batik Overlay - Top Left */}
           <div
             className="absolute -top-50 -left-40 w-80 h-80 pointer-events-none opacity-80 transition-all duration-[1500ms] group-hover:-top-24 group-hover:-left-24 group-hover:-rotate-12"
-            style={{ 
-              backgroundImage: "url('/textureBg.png')", 
+            style={{
+              backgroundImage: "url('/textureBg.png')",
               backgroundSize: "180px",
               borderRadius: "4rem",
               transform: "rotate(-45deg)"
             }}
             aria-hidden
           />
-          
+
           {/* Batik Overlay - Bottom Right */}
           <div
             className="absolute -bottom-50 -right-40 w-80 h-80 pointer-events-none opacity-100 transition-all duration-[1500ms] group-hover:-bottom-24 group-hover:-right-24 group-hover:-rotate-12"
-            style={{ 
-              backgroundImage: "url('/textureBg.png')", 
+            style={{
+              backgroundImage: "url('/textureBg.png')",
               backgroundSize: "180px",
               borderRadius: "4rem",
               transform: "rotate(-45deg)"

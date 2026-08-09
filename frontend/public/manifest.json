@@ -1,0 +1,23 @@
+{
+  "name": "Padi — Dashboard Administrasi Indonesia",
+  "short_name": "Padi",
+  "description": "Platform terpadu untuk memantau seluruh kebutuhan administrasi masyarakat Indonesia dalam satu dashboard — pajak, BPJS, SIM, STNK, paspor, dan lebih banyak lagi.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0f1117",
+  "icons": [
+    {
+      "src": "/padiLogoShorted.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/padiLogoShorted.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

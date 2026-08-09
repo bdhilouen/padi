@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -12,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/useAuth";
 import { ROUTES } from "@/constants";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 const loginSchema = z.object({
   nik: z
@@ -19,8 +21,7 @@ const loginSchema = z.object({
     .min(16, "NIK harus 16 digit")
     .max(16, "NIK harus 16 digit")
     .regex(/^\d+$/, "NIK hanya boleh berisi angka"),
-  email: z.string().email("Format email tidak valid"),
-  password: z.string().min(8, "Password minimal 8 karakter"),
+  password: z.string().min(1, "Password tidak boleh kosong"),
 });
 
 type LoginFormValues = z.infer<typeof loginSchema>;
@@ -41,7 +42,12 @@ export default function LoginPage() {
   async function onSubmit(values: LoginFormValues) {
     setIsLoading(true);
     try {
-      await login(values.nik, values.email, values.password);
+      await login(values.nik, values.password);
+    } catch (err: unknown) {
+      const message =
+        (err as { response?: { data?: { message?: string } } })?.response?.data
+          ?.message ?? "NIK atau password salah";
+      toast.error(message);
     } finally {
       setIsLoading(false);
     }
@@ -51,11 +57,10 @@ export default function LoginPage() {
     <div className="page-enter">
       {/* Logo */}
       <div className="mb-8 flex flex-col items-center gap-3">
-        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm">
-          <Shield className="h-6 w-6" />
-        </div>
+        <Image src="/LogoPadi.webp" alt="Logo Padi" width={160} height={50} className="w-32 h-auto dark:hidden object-contain" priority />
+        <Image src="/LogoPadiWhite.png" alt="Logo Padi" width={160} height={50} className="w-32 h-auto hidden dark:block object-contain" priority />
         <div className="text-center">
-          <h1 className="font-display text-2xl font-bold text-foreground">Masuk ke CitizenHub</h1>
+          <h1 className="font-display text-2xl font-bold text-foreground">Masuk ke Padi</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             Kelola administrasi Indonesia Anda dalam satu tempat
           </p>
@@ -87,26 +92,6 @@ export default function LoginPage() {
             )}
           </div>
 
-          {/* Email */}
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="nama@email.com"
-              autoComplete="email"
-              {...register("email")}
-              className={cn(errors.email && "border-danger focus-visible:ring-danger/30")}
-              aria-describedby={errors.email ? "email-error" : undefined}
-              aria-invalid={!!errors.email}
-            />
-            {errors.email && (
-              <p id="email-error" className="text-xs text-danger">
-                {errors.email.message}
-              </p>
-            )}
-          </div>
-
           {/* Password */}
           <div className="space-y-2">
             <Label htmlFor="password">Password</Label>
@@ -114,7 +99,7 @@ export default function LoginPage() {
               <Input
                 id="password"
                 type={showPassword ? "text" : "password"}
-                placeholder="Minimal 8 karakter"
+                placeholder="Masukkan password Anda"
                 autoComplete="current-password"
                 {...register("password")}
                 className={cn(
@@ -152,7 +137,7 @@ export default function LoginPage() {
 
       <p className="mt-6 text-center text-sm text-muted-foreground">
         Belum punya akun?{" "}
-        <Link href={ROUTES.LOGIN} className="font-medium text-primary hover:underline">
+        <Link href="/register" className="font-medium text-primary hover:underline">
           Daftar sekarang
         </Link>
       </p>

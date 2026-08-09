@@ -1,4 +1,4 @@
-# Backend Rules - CitizenHub
+# Backend Rules - PADI
 
 Technical convention guide for the NestJS + PostgreSQL backend. The AI agent must follow these rules unless there are explicit instructions overriding them in a specific conversation or task.
 

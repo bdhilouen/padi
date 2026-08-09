@@ -1,5 +1,5 @@
 {
-  "name": "citizenhub",
+  "name": "padi",
   "private": true,
   "workspaces": [
     "apps/*"

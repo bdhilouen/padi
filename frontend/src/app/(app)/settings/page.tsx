@@ -73,58 +73,63 @@ function NotifToggle({ setting }: { setting: NotificationSetting }) {
 export default function SettingsPage() {
   const { logout } = useAuth();
   return (
-    <div className="px-6 py-8 max-w-2xl mx-auto page-enter">
+    <div className="page-container-narrow page-enter">
       <div className="mb-8">
         <h1 className="font-display text-3xl font-bold text-foreground">Pengaturan</h1>
         <p className="mt-1 text-muted-foreground">Kelola preferensi dan akun Anda.</p>
       </div>
 
-      {/* Appearance */}
-      <Card className="mb-6">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base font-semibold">Tampilan</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground mb-3">Pilih tema aplikasi</p>
-          <ThemeSelector />
-        </CardContent>
-      </Card>
+      <div className="flex flex-col lg:flex-row gap-6 items-start">
+        {/* Left column: Appearance + Account */}
+        <div className="flex flex-col gap-6 w-full lg:w-72 lg:shrink-0">
+          {/* Appearance */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base font-semibold">Tampilan</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground mb-3">Pilih tema aplikasi</p>
+              <ThemeSelector />
+            </CardContent>
+          </Card>
 
-      {/* Notifications */}
-      <Card className="mb-6">
-        <CardHeader className="pb-3">
-          <div className="flex items-center gap-2">
-            <Bell className="h-4 w-4 text-muted-foreground" strokeWidth={1.5} />
-            <CardTitle className="text-base font-semibold">Notifikasi</CardTitle>
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-5">
-          {mockNotificationSettings.map((s, idx) => (
-            <div key={s.id}>
-              <NotifToggle setting={s} />
-              {idx < mockNotificationSettings.length - 1 && <Separator className="mt-5" />}
+          {/* Account */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base font-semibold">Akun</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Button
+                variant="destructive"
+                className="w-full gap-2"
+                onClick={logout}
+                id="btn-logout"
+              >
+                <LogOut className="h-4 w-4" strokeWidth={1.5} />
+                Keluar dari Padi
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Right column: Notifications — fills remaining space */}
+        <Card className="flex-1 w-full">
+          <CardHeader className="pb-3">
+            <div className="flex items-center gap-2">
+              <Bell className="h-4 w-4 text-muted-foreground" strokeWidth={1.5} />
+              <CardTitle className="text-base font-semibold">Notifikasi</CardTitle>
             </div>
-          ))}
-        </CardContent>
-      </Card>
-
-      {/* Account */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base font-semibold">Akun</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Button
-            variant="destructive"
-            className="w-full gap-2"
-            onClick={logout}
-            id="btn-logout"
-          >
-            <LogOut className="h-4 w-4" strokeWidth={1.5} />
-            Keluar dari CitizenHub
-          </Button>
-        </CardContent>
-      </Card>
+          </CardHeader>
+          <CardContent className="space-y-5">
+            {mockNotificationSettings.map((s, idx) => (
+              <div key={s.id}>
+                <NotifToggle setting={s} />
+                {idx < mockNotificationSettings.length - 1 && <Separator className="mt-5" />}
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

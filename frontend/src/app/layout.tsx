@@ -20,16 +20,16 @@ const spaceGrotesk = Space_Grotesk({
 export const metadata: Metadata = {
   title: {
     default: "Padi — Dashboard Administrasi Indonesia",
-    template: "%s | CitizenHub",
+    template: "%s | Padi",
   },
   description:
     "Platform terpadu untuk memantau seluruh kebutuhan administrasi masyarakat Indonesia dalam satu dashboard — pajak, BPJS, SIM, STNK, paspor, dan lebih banyak lagi.",
   keywords: ["administrasi", "pajak", "BPJS", "SIM", "STNK", "paspor", "pemerintah", "Indonesia"],
-  authors: [{ name: "CitizenHub Team" }],
-  creator: "CitizenHub",
+  authors: [{ name: "Padi Team" }],
+  creator: "Padi",
   manifest: "/manifest.json",
   icons: {
-    icon: "/LogoPadi.webp",
+    icon: "/padiLogoShorted.png",
   },
 };
 

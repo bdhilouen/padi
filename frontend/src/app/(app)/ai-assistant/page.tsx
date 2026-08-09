@@ -1,14 +1,14 @@
 "use client";
 
 import { useRef, useEffect, useState } from "react";
-import { Send, Bot, User, Trash2 } from "lucide-react";
+import { Send, Bot, User, Trash2, Loader2 } from "lucide-react";
 import { useAIChat } from "@/hooks/useAIChat";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 
 export default function AIAssistantPage() {
-  const { messages, isTyping, sendMessage, clearMessages } = useAIChat();
+  const { messages, isTyping, isInitializing, sendMessage, clearMessages } = useAIChat();
   const [input, setInput] = useState("");
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -33,11 +33,11 @@ export default function AIAssistantPage() {
   }
 
   return (
-    <div className="flex flex-col h-screen lg:h-screen page-enter w-full lg:px-0">
-      {/* Header
+    <div className="flex flex-col h-screen lg:h-screen page-enter w-full">
+      {/* Header */}
       <div className="py-6 px-4 border-b border-border flex items-center justify-between shrink-0">
         <div className="">
-          <h1 className="font-display text-2xl font-bold text-foreground">AI Assistant</h1>
+          <h1 className="font-sans text-2xl font-bold text-foreground">AI Assistant</h1>
           <p className="text-sm text-muted-foreground mt-0.5">
             Tanya apa saja seputar administrasi Anda
           </p>
@@ -47,21 +47,28 @@ export default function AIAssistantPage() {
           size="icon"
           onClick={clearMessages}
           aria-label="Hapus percakapan"
+          title="Hapus percakapan"
           className="text-muted-foreground hover:text-danger hover:bg-danger/10"
         >
           <Trash2 className="h-4 w-4" strokeWidth={1.5} />
         </Button>
-      </div> */}
+      </div>
 
       {/* Messages */}
-      <ScrollArea className="flex-1 py-4 relative">
-        <div className="absolute top-0 right-0 z-[-1] h-full w-full bg-[url('/textureBg.png')] "/>
-        <div className="space-y-4 pr-2 pl-2">
-          {messages.map((msg) => (
+      <ScrollArea className="flex-1 py-4 relative scroll-smooth overflow-y-hidden">
+        <div className="space-y-4 pr-4 pl-4 lg:pr-10 lg:pl-10">
+          {isInitializing ? (
+            <div className="flex flex-col items-center justify-center py-20 text-muted-foreground gap-3">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              <p className="text-sm">Memuat riwayat percakapan...</p>
+            </div>
+          ) : (
+            <>
+              {messages.map((msg) => (
             <div
               key={msg.id}
               className={cn(
-                "flex gap-3 max-w-[85%]",
+                "flex gap-3 max-w-[85%] lg:max-w-[60%]",
                 msg.role === "user" ? "ml-auto flex-row-reverse" : "mr-auto"
               )}
             >
@@ -127,23 +134,25 @@ export default function AIAssistantPage() {
               </div>
             </div>
           )}
+          </>
+          )}
 
           <div ref={bottomRef} />
         </div>
       </ScrollArea>
 
       {/* Input */}
-      <div className="py-4 border-t border-border shrink-0">
+      <div className="py-4 px-4 lg:px-10 border-t border-border shrink-0">
         <div className="flex gap-2 items-end">
           <textarea
             ref={inputRef}
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Ketik pertanyaan Anda... (Enter untuk kirim)"
+            placeholder="Ketik pertanyaan Anda... "
             rows={1}
             aria-label="Pesan ke AI Assistant"
-            className="flex-1 resize-none rounded-xl border border-border bg-background px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-all max-h-32 overflow-y-auto"
+            className="flex-1 resize-none rounded-xl border border-border bg-background px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-all max-h-32 overflow-y-auto scrollbar-hide"
             style={{ minHeight: "44px" }}
             onInput={(e) => {
               const t = e.currentTarget;
