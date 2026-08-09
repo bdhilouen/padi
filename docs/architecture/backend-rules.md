@@ -1,4 +1,4 @@
-# Backend Rules - PADI
+# Backend Rules — PADI (Portal Administrasi Indonesia)
 
 Technical convention guide for the NestJS + PostgreSQL backend. The AI agent must follow these rules unless there are explicit instructions overriding them in a specific conversation or task.
 

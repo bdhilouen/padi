@@ -146,6 +146,7 @@ vite.config.ts.timestamp-*
 .vite/
 
 docs/precord.md
+docs/historys.md
 
 # Uploaded files
 uploads/

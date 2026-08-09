@@ -195,16 +195,16 @@ CREATE TABLE life_event_templates (
   created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-INSERT INTO life_events (id, code, name, description) VALUES
-  ('a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d', 'MENIKAH', 'Menikah', 'Kejadian hidup pernikahan'),
-  ('b2c3d4e5-f6a7-8b9c-0d1e-2f3a4b5c6d7e', 'PUNYA_ANAK', 'Memiliki Anak', 'Kejadian hidup kelahiran anak');
+INSERT INTO life_events (code, name, description) VALUES
+  ('MENIKAH', 'Menikah', 'Kejadian hidup pernikahan'),
+  ('PUNYA_ANAK', 'Memiliki Anak', 'Kejadian hidup kelahiran anak');
 
 INSERT INTO life_event_templates (life_event_id, document_name, display_order, is_required) VALUES
-  ('a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d', 'Fotokopi KTP', 1, true),
-  ('a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d', 'Fotokopi KK', 2, true),
-  ('a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d', 'Surat Pengantar RT/RW', 3, true),
-  ('b2c3d4e5-f6a7-8b9c-0d1e-2f3a4b5c6d7e', 'Surat Keterangan Lahir dari RS/Bidan', 1, true),
-  ('b2c3d4e5-f6a7-8b9c-0d1e-2f3a4b5c6d7e', 'Fotokopi Buku Nikah', 2, true);
+  ((SELECT id FROM life_events WHERE code = 'MENIKAH'), 'Fotokopi KTP', 1, true),
+  ((SELECT id FROM life_events WHERE code = 'MENIKAH'), 'Fotokopi KK', 2, true),
+  ((SELECT id FROM life_events WHERE code = 'MENIKAH'), 'Surat Pengantar RT/RW', 3, true),
+  ((SELECT id FROM life_events WHERE code = 'PUNYA_ANAK'), 'Surat Keterangan Lahir dari RS/Bidan', 1, true),
+  ((SELECT id FROM life_events WHERE code = 'PUNYA_ANAK'), 'Fotokopi Buku Nikah', 2, true);
 
 -- ============================================
 -- 10. LIFE_EVENT_SELECTIONS
@@ -283,3 +283,32 @@ CREATE TRIGGER trg_audit_logs_no_update
 CREATE TRIGGER trg_audit_logs_no_delete
   BEFORE DELETE ON audit_logs
   FOR EACH ROW EXECUTE FUNCTION block_audit_log_mutation();
+
+-- ============================================
+-- 14. CHAT_SESSIONS
+-- ============================================
+CREATE TABLE chat_sessions (
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id     UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  title       VARCHAR(255) NOT NULL DEFAULT 'Untitled',
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+  deleted_at  TIMESTAMPTZ
+);
+
+CREATE INDEX idx_chat_sessions_user_id
+  ON chat_sessions(user_id) WHERE deleted_at IS NULL;
+
+-- ============================================
+-- 15. CHAT_MESSAGES
+-- ============================================
+CREATE TABLE chat_messages (
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  session_id  UUID NOT NULL REFERENCES chat_sessions(id) ON DELETE CASCADE,
+  role        VARCHAR(20) NOT NULL CHECK (role IN ('user', 'assistant')),
+  content     TEXT NOT NULL,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX idx_chat_messages_session
+  ON chat_messages(session_id, created_at ASC);

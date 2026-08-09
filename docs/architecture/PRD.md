@@ -1,8 +1,8 @@
-# Product Requirements Document — PADI
+# Product Requirements Document — PADI (Portal Administrasi Indonesia)
 
 ## 1. Product Summary
 
-PADI is a national-level unified administration dashboard platform that integrates various government public services (Coretax DJP, BPJS Kesehatan, SATUSEHAT, SAMSAT, PLN, PDAM, ETLE, M-Paspor) into a single cohesive interface.
+PADI (Portal Administrasi Indonesia) is a national-level unified administration dashboard platform that integrates various government public services (Coretax DJP, BPJS Kesehatan, SATUSEHAT, SAMSAT, PLN, PDAM, ETLE, M-Paspor) into a single cohesive interface.
 
 This system serves as an **integration layer**, not a replacement for existing government systems. Key features include: Unified Dashboard, Administration Timeline, Smart Reminder, Life Event Assistant, Digital Document Vault, and Notification Center.
 

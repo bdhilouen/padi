@@ -323,20 +323,20 @@ export class InitialSchema1753791000000 implements MigrationInterface {
     // (IDs match schema.sql exactly so they can be referenced safely)
     // =========================================================
     await queryRunner.query(`
-      INSERT INTO "life_events" ("id", "code", "name", "description") VALUES
-        ('a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d', 'MENIKAH',    'Menikah',        'Kejadian hidup pernikahan'),
-        ('b2c3d4e5-f6a7-8b9c-0d1e-2f3a4b5c6d7e', 'PUNYA_ANAK', 'Memiliki Anak',  'Kejadian hidup kelahiran anak')
+      INSERT INTO "life_events" ("code", "name", "description") VALUES
+        ('MENIKAH',    'Menikah',        'Kejadian hidup pernikahan'),
+        ('PUNYA_ANAK', 'Memiliki Anak',  'Kejadian hidup kelahiran anak')
     `);
 
     await queryRunner.query(`
       INSERT INTO "life_event_templates"
         ("life_event_id", "document_name", "display_order", "is_required")
       VALUES
-        ('a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d', 'Fotokopi KTP',            1, true),
-        ('a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d', 'Fotokopi KK',             2, true),
-        ('a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d', 'Surat Pengantar RT/RW',   3, true),
-        ('b2c3d4e5-f6a7-8b9c-0d1e-2f3a4b5c6d7e', 'Surat Keterangan Lahir dari RS/Bidan', 1, true),
-        ('b2c3d4e5-f6a7-8b9c-0d1e-2f3a4b5c6d7e', 'Fotokopi Buku Nikah',     2, true)
+        ((SELECT "id" FROM "life_events" WHERE "code" = 'MENIKAH'), 'Fotokopi KTP', 1, true),
+        ((SELECT "id" FROM "life_events" WHERE "code" = 'MENIKAH'), 'Fotokopi KK', 2, true),
+        ((SELECT "id" FROM "life_events" WHERE "code" = 'MENIKAH'), 'Surat Pengantar RT/RW', 3, true),
+        ((SELECT "id" FROM "life_events" WHERE "code" = 'PUNYA_ANAK'), 'Surat Keterangan Lahir dari RS/Bidan', 1, true),
+        ((SELECT "id" FROM "life_events" WHERE "code" = 'PUNYA_ANAK'), 'Fotokopi Buku Nikah', 2, true)
     `);
 
     // =========================================================

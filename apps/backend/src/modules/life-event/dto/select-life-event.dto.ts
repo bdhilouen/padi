@@ -10,6 +10,6 @@ import { IsUUID } from 'class-validator';
  * user_id is never accepted from the body — always taken from the JWT payload.
  */
 export class SelectLifeEventDto {
-  @IsUUID('4', { message: 'life_event_id must be a valid UUID' })
+  @IsUUID(undefined, { message: 'life_event_id must be a valid UUID' })
   life_event_id: string;
 }
